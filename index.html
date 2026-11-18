@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PUBG Mobile Player Stats</title>
+  <style>
+    :root {
+      --bg: #0f1218;
+      --card: #181d27;
+      --accent: #f2a900;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #2a3140;
+    }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .player-info h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+    .player-info p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    .controls button, .controls select {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .controls button.primary {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .card .label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card .value { font-size: 1.9rem; font-weight: 700; margin-top: 0.4rem; }
+    .card .sub { color: var(--accent); font-size: 0.8rem; margin-top: 0.25rem; }
+    
+    /* Modal for Editing Stats */
+    dialog {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 450px;
+      width: 90%;
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.75); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .form-group input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem;
+      border-radius: 4px;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="player-info">
+        <h1 id="displayName">PlayerOne</h1>
+        <p>UID: <span id="displayUid">5123456789</span> • Tier: <span id="displayTier">Ace Dominator</span></p>
+      </div>
+      <div class="controls">
+        <select id="modeSelect" onchange="renderStats()">
+          <option value="squad">Squad (TPP)</option>
+          <option value="duo">Duo (TPP)</option>
+          <option value="solo">Solo (TPP)</option>
+        </select>
+        <button class="primary" onclick="openEditor()">Update Stats</button>
+      </div>
+    </header>
+
+    <div class="grid" id="statsGrid"></div>
+  </div>
+
+  <dialog id="editorDialog">
+    <h3 style="margin-top:0;">Edit Mode Stats</h3>
+    <form id="statsForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Player Name</label>
+          <input type="text" id="inName" required />
+        </div>
+        <div class="form-group">
+          <label>Character UID</label>
+          <input type="text" id="inUid" required />
+        </div>
+        <div class="form-group">
+          <label>Current Tier</label>
+          <input type="text" id="inTier" required />
+        </div>
+        <div class="form-group">
+          <label>Matches Played</label>
+          <input type="number" id="inMatches" min="1" required />
+        </div>
+        <div class="form-group">
+          <label>Wins (Chicken Dinners)</label>
+          <input type="number" id="inWins" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Top 10 Finishes</label>
+          <input type="number" id="inTop10" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Total Eliminations</label>
+          <input type="number" id="inKills" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Total Damage</label>
+          <input type="number" id="inDamage" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Headshot Kills</label>
+          <input type="number" id="inHeadshots" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Highest Eliminations</label>
+          <input type="number" id="inMaxKills" min="0" required />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" onclick="document.getElementById('editorDialog').close()">Cancel</button>
+        <button type="submit" class="primary">Save Stats</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const defaultData = {
+      profile: { name: "ShadowHunter", uid: "5194820194", tier: "Ace Master" },
+      modes: {
+        squad: { matches: 142, wins: 31, top10: 98, kills: 615, damage: 94200, headshots: 148, maxKills: 16 },
+        duo:   { matches: 48,  wins: 9,  top10: 32, kills: 174, damage: 27100, headshots: 41,  maxKills: 11 },
+        solo:  { matches: 20,  wins: 4,  top10: 14, kills: 68,  damage: 10500, headshots: 19,  maxKills: 9 }
+      }
+    };
+
+    let playerData = JSON.parse(localStorage.getItem("pubgm_stats")) || defaultData;
+
+    function renderStats() {
+      const mode = document.getElementById("modeSelect").value;
+      const s = playerData.modes[mode];
+
+      document.getElementById("displayName").textContent = playerData.profile.name;
+      document.getElementById("displayUid").textContent = playerData.profile.uid;
+      document.getElementById("displayTier").textContent = playerData.profile.tier;
+
+      // Derived metrics
+      const kd = (s.kills / Math.max(1, s.matches)).toFixed(2);
+      const winRate = ((s.wins / Math.max(1, s.matches)) * 100).toFixed(1) + "%";
+      const top10Rate = ((s.top10 / Math.max(1, s.matches)) * 100).toFixed(1) + "%";
+      const avgDamage = Math.round(s.damage / Math.max(1, s.matches));
+      const hsRate = ((s.headshots / Math.max(1, s.kills)) * 100).toFixed(1) + "%";
+
+      const metrics = [
+        { label: "F/D Ratio (K/D)", value: kd, sub: `${s.kills} Total Eliminations` },
+        { label: "Win Ratio", value: winRate, sub: `${s.wins} Chicken Dinners` },
+        { label: "Avg. Damage", value: avgDamage, sub: `${s.damage.toLocaleString()} Total Damage` },
+        { label: "Top 10 Rate", value: top10Rate, sub: `${s.top10} Top 10s in ${s.matches} Matches` },
+        { label: "Headshot Rate", value: hsRate, sub: `${s.headshots} Headshot Kills` },
+        { label: "Most Eliminations", value: s.maxKills, sub: "Single Match Record" }
+      ];
+
+      const grid = document.getElementById("statsGrid");
+      grid.innerHTML = metrics.map(m => `
+        <div class="card">
+          <div class="label">${m.label}</div>
+          <div class="value">${m.value}</div>
+          <div class="sub">${m.sub}</div>
+        </div>
+      `).join("");
+    }
+
+    function openEditor() {
+      const mode = document.getElementById("modeSelect").value;
+      const s = playerData.modes[mode];
+      document.getElementById("inName").value = playerData.profile.name;
+      document.getElementById("inUid").value = playerData.profile.uid;
+      document.getElementById("inTier").value = playerData.profile.tier;
+      document.getElementById("inMatches").value = s.matches;
+      document.getElementById("inWins").value = s.wins;
+      document.getElementById("inTop10").value = s.top10;
+      document.getElementById("inKills").value = s.kills;
+      document.getElementById("inDamage").value = s.damage;
+      document.getElementById("inHeadshots").value = s.headshots;
+      document.getElementById("inMaxKills").value = s.maxKills;
+      document.getElementById("editorDialog").showModal();
+    }
+
+    document.getElementById("statsForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const mode = document.getElementById("modeSelect").value;
+      playerData.profile = {
+        name: document.getElementById("inName").value,
+        uid: document.getElementById("inUid").value,
+        tier: document.getElementById("inTier").value
+      };
+      playerData.modes[mode] = {
+        matches: Number(document.getElementById("inMatches").value),
+        wins: Number(document.getElementById("inWins").value),
+        top10: Number(document.getElementById("inTop10").value),
+        kills: Number(document.getElementById("inKills").value),
+        damage: Number(document.getElementById("inDamage").value),
+        headshots: Number(document.getElementById("inHeadshots").value),
+        maxKills: Number(document.getElementById("inMaxKills").value)
+      };
+      localStorage.setItem("pubgm_stats", JSON.stringify(playerData));
+      document.getElementById("editorDialog").close();
+      renderStats();
+    });
+
+    renderStats();
+  </script>
+</body>
+</html>
