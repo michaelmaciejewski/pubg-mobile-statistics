@@ -88,7 +88,7 @@
 </head>
 <body class="antialiased selection:bg-amber-500 selection:text-black pb-14">
 
-  <!-- Toast Notification Container (Replaces alert/confirm) -->
+  <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
   <!-- Top Navigation / Tactical Bar -->
@@ -103,13 +103,13 @@
             <span class="font-display font-bold text-lg tracking-wider uppercase text-white">PUBGM <span class="text-amber-400">TELEMETRY</span></span>
             <span class="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">v4.2 Tactical</span>
           </div>
-          <p class="text-[11px] text-slate-400 hidden sm:block">Multi-Season Combat Analytics & OCR Scanner</p>
+          <p class="text-[11px] text-slate-400 hidden sm:block">18-Season Career Telemetry & OCR Scanner</p>
         </div>
       </div>
 
       <!-- Backup & Quick Actions -->
       <div class="flex items-center gap-2">
-        <button onclick="exportJsonBackup()" title="Export JSON Backup" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition">
+        <button onclick="exportJsonBackup()" title="Export JSON Backup" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition cursor-pointer">
           <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           <span class="hidden md:inline">Export JSON</span>
         </button>
@@ -144,7 +144,7 @@
               </svg>
             </div>
             <span class="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-cyan-500 text-black shadow">
-              LV. 78
+              LV. 82
             </span>
           </div>
 
@@ -152,9 +152,9 @@
             <div class="flex flex-wrap items-center gap-2.5">
               <h1 id="profileName" class="font-display text-2xl sm:text-3xl font-bold tracking-wide text-white">ValkyrieOps</h1>
               <span id="profileHighestTierBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                Conqueror
+                Ace Dominator 23★
               </span>
-              <button onclick="openProfileModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-amber-400 transition" title="Edit Profile">
+              <button onclick="openProfileModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-amber-400 transition cursor-pointer" title="Edit Profile">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
             </div>
@@ -173,7 +173,7 @@
               <span class="text-slate-600">•</span>
               <div>
                 <span class="text-slate-500 font-medium">Tracked Seasons:</span>
-                <span id="trackedSeasonsCount" class="text-slate-200 font-semibold">5</span>
+                <span id="trackedSeasonsCount" class="text-slate-200 font-semibold">18</span>
               </div>
             </div>
           </div>
@@ -191,27 +191,26 @@
           <div class="flex flex-col">
             <label for="modeFilter" class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Combat Mode</label>
             <select id="modeFilter" onchange="handleFilterChange()" class="bg-slate-900/90 text-white text-sm font-medium rounded-lg px-3 py-2 border border-white/10 focus:border-cyan-500 focus:outline-none cursor-pointer">
-              <option value="Squad TPP">Squad (TPP)</option>
+              <option value="Squad TPP">Ranked Squad (TPP)</option>
               <option value="Duo TPP">Duo (TPP)</option>
               <option value="Solo TPP">Solo (TPP)</option>
-              <option value="Squad FPP">Squad (FPP)</option>
             </select>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 3. KPI SUMMARY CARDS (6 Metrics with Progress Bars & Deltas) -->
+    <!-- 3. KPI SUMMARY CARDS -->
     <section>
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
           <h2 id="kpiSectionTitle" class="font-display text-lg font-bold uppercase tracking-wider text-slate-200">
-            Career Aggregate Telemetry • Squad (TPP)
+            Career Aggregate Telemetry • Ranked Squad (TPP)
           </h2>
         </div>
         <span id="kpiMatchesBadge" class="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/10">
-          0 Matches Played
+          5,562 Matches Played
         </span>
       </div>
 
@@ -220,13 +219,13 @@
       </div>
     </section>
 
-    <!-- 4. VISUAL TREND CHART & SEASON PERFORMANCE OVERVIEW -->
+    <!-- 4. VISUAL TREND CHART & COMBAT EFFICIENCY -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="glass-panel rounded-2xl p-5 lg:col-span-2 flex flex-col justify-between">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div>
             <h3 class="font-display text-lg font-bold uppercase tracking-wider text-white">Season Progression Telemetry</h3>
-            <p class="text-xs text-slate-400">F/D Ratio & Average Damage trajectory across recorded seasons</p>
+            <p class="text-xs text-slate-400">F/D Ratio & Average Damage trajectory across all 18 seasons (C5S15 – S32)</p>
           </div>
           <div class="flex items-center gap-4 text-xs">
             <span class="flex items-center gap-1.5 text-amber-400 font-medium">
@@ -269,19 +268,28 @@
           <h3 class="font-display text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2">
             Season-by-Season Combat Ledger
             <span id="tableModePill" class="text-xs font-sans font-semibold px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
-              Squad TPP
+              Ranked Squad (TPP)
             </span>
           </h3>
           <p class="text-xs text-slate-400 mt-0.5">Click column headers to sort • Click any row to focus KPI cards on that season</p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Rating Filter -->
+          <select id="ratingFilter" onchange="renderSeasonTable()" class="bg-obsidian text-slate-200 text-xs font-medium rounded-lg px-2.5 py-1.5 border border-white/10 focus:border-amber-500 focus:outline-none cursor-pointer">
+            <option value="ALL">Filter Rating: All</option>
+            <option value="SS+">SS+ Grade</option>
+            <option value="SS">SS Grade</option>
+            <option value="S+">S+ Grade</option>
+            <option value="S">S Grade</option>
+          </select>
+
+          <!-- Search Input -->
+          <input type="text" id="searchInput" oninput="renderSeasonTable()" placeholder="Search season or tier..." class="bg-obsidian text-slate-200 placeholder-slate-500 text-xs rounded-lg px-3 py-1.5 border border-white/10 focus:border-amber-500 focus:outline-none w-36 sm:w-44" />
+
           <button onclick="openSeasonModal()" class="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             Scan Screenshot
-          </button>
-          <button onclick="resetDemoData()" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-medium transition cursor-pointer" title="Restore Default Sample Seasons">
-            Reset Sample
           </button>
         </div>
       </div>
@@ -294,7 +302,7 @@
                 Season <span id="sort-seasonId" class="text-amber-400">↓</span>
               </th>
               <th class="py-3.5 px-4 cursor-pointer hover:text-amber-400 transition" onclick="sortTable('tier')">
-                Peak Tier <span id="sort-tier"></span>
+                Peak Tier & Rating <span id="sort-tier"></span>
               </th>
               <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('matches')">
                 Matches <span id="sort-matches"></span>
@@ -371,29 +379,30 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Season ID</label>
-            <input type="text" id="fSeasonId" placeholder="e.g. C11S32" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white uppercase focus:border-amber-500 focus:outline-none" />
+            <input type="text" id="fSeasonId" placeholder="e.g. S33" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white uppercase focus:border-amber-500 focus:outline-none" />
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Mode</label>
             <select id="fMode" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
-              <option value="Squad TPP">Squad TPP</option>
-              <option value="Duo TPP">Duo TPP</option>
-              <option value="Solo TPP">Solo TPP</option>
-              <option value="Squad FPP">Squad FPP</option>
+              <option value="Squad TPP">Ranked Squad (TPP)</option>
+              <option value="Duo TPP">Duo (TPP)</option>
+              <option value="Solo TPP">Solo (TPP)</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Peak Tier</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Peak Tier & Rating</label>
             <select id="fTier" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
-              <option value="Conqueror">Conqueror</option>
-              <option value="Ace Dominator">Ace Dominator</option>
-              <option value="Ace Master">Ace Master</option>
-              <option value="Ace">Ace</option>
-              <option value="Crown">Crown</option>
-              <option value="Diamond">Diamond</option>
-              <option value="Platinum">Platinum</option>
+              <option value="Ace Dominator (23★) • SS+ (91.6)">Ace Dominator (23★) • SS+</option>
+              <option value="Ace Dominator (20★) • SS+ (89.9)">Ace Dominator (20★) • SS+</option>
+              <option value="Ace Dominator (15★) • SS+ (91.6)">Ace Dominator (15★) • SS+</option>
+              <option value="Ace Dominator • SS+ (90.3)">Ace Dominator • SS+</option>
+              <option value="Ace Dominator • SS (85.6)">Ace Dominator • SS</option>
+              <option value="Ace • SS+ (94.3)">Ace • SS+</option>
+              <option value="Ranked Squad • SS (84.6)">Ranked Squad • SS</option>
+              <option value="Ranked Squad • S+ (82.6)">Ranked Squad • S+</option>
+              <option value="Ranked Squad • S (76.7)">Ranked Squad • S</option>
             </select>
           </div>
         </div>
@@ -481,11 +490,9 @@
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Highest Career Tier</label>
           <select id="pHighestTier" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
+            <option value="Ace Dominator (23★)">Ace Dominator (23★)</option>
             <option value="Conqueror">Conqueror</option>
-            <option value="Ace Dominator">Ace Dominator</option>
             <option value="Ace Master">Ace Master</option>
-            <option value="Ace">Ace</option>
-            <option value="Crown">Crown</option>
           </select>
         </div>
       </div>
@@ -496,7 +503,7 @@
     </form>
   </dialog>
 
-  <!-- MODAL 3: DELETE CONFIRMATION (Custom Modal instead of confirm()) -->
+  <!-- MODAL 3: DELETE CONFIRMATION -->
   <dialog id="deleteConfirmModal" class="glass-panel rounded-2xl p-5 max-w-sm w-11/12 text-slate-100 border border-rose-500/30 shadow-2xl">
     <h3 class="font-display text-lg font-bold uppercase tracking-wider text-rose-400">Delete Season Record?</h3>
     <p id="deleteConfirmText" class="text-sm text-slate-300 mt-2">Are you sure you want to remove this season from your telemetry ledger?</p>
@@ -508,36 +515,36 @@
 
   <script>
     // =========================================================================
-    // 1. REALISTIC MULTI-SEASON SAMPLE DATASET (C9S27 through C11S31)
+    // 1. COMPLETE 18-SEASON CAREER DATASET (C5S15 through Season 32)
     // =========================================================================
-    const STORAGE_KEY = "pubgm_tactical_telemetry_v1";
+    const STORAGE_KEY = "pubgm_telemetry_complete_v1";
 
     const DEFAULT_STATE = {
       profile: {
         name: "ValkyrieOps",
         uid: "5184920371",
         server: "North America",
-        highestTier: "Conqueror"
+        highestTier: "Ace Dominator (23★)"
       },
       records: [
-        // Squad TPP Seasons
-        { seasonId: "C9S27",  mode: "Squad TPP", tier: "Ace Master",    matches: 164, wins: 32, top10: 112, kills: 642,  damage: 104960, headshots: 148, maxKills: 15 },
-        { seasonId: "C10S28", mode: "Squad TPP", tier: "Ace Dominator", matches: 192, wins: 44, top10: 138, kills: 825,  damage: 136320, headshots: 198, maxKills: 18 },
-        { seasonId: "C10S29", mode: "Squad TPP", tier: "Ace Dominator", matches: 178, wins: 39, top10: 126, kills: 798,  damage: 131720, headshots: 192, maxKills: 17 },
-        { seasonId: "C10S30", mode: "Squad TPP", tier: "Conqueror",     matches: 224, wins: 58, top10: 172, kills: 1098, damage: 181440, headshots: 274, maxKills: 21 },
-        { seasonId: "C11S31", mode: "Squad TPP", tier: "Ace Dominator", matches: 135, wins: 36, top10: 104, kills: 688,  damage: 114750, headshots: 179, maxKills: 19 },
-
-        // Duo TPP Seasons
-        { seasonId: "C10S29", mode: "Duo TPP",   tier: "Ace",           matches: 62,  wins: 14, top10: 44,  kills: 248,  damage: 40300,  headshots: 59,  maxKills: 13 },
-        { seasonId: "C10S30", mode: "Duo TPP",   tier: "Ace Master",    matches: 74,  wins: 19, top10: 55,  kills: 325,  damage: 53280,  headshots: 81,  maxKills: 15 },
-        { seasonId: "C11S31", mode: "Duo TPP",   tier: "Ace",           matches: 48,  wins: 12, top10: 36,  kills: 216,  damage: 35520,  headshots: 54,  maxKills: 14 },
-
-        // Solo TPP Seasons
-        { seasonId: "C10S30", mode: "Solo TPP",  tier: "Crown",         matches: 34,  wins: 8,  top10: 24,  kills: 139,  damage: 22440,  headshots: 38,  maxKills: 12 },
-        { seasonId: "C11S31", mode: "Solo TPP",  tier: "Ace",           matches: 29,  wins: 7,  top10: 21,  kills: 128,  damage: 20880,  headshots: 35,  maxKills: 11 },
-
-        // Squad FPP Seasons
-        { seasonId: "C11S31", mode: "Squad FPP", tier: "Crown",         matches: 41,  wins: 11, top10: 30,  kills: 197,  damage: 31980,  headshots: 52,  maxKills: 16 }
+        { seasonId: "C5S15", mode: "Squad TPP", tier: "Ranked Squad • SS+ (90.3)", matches: 44,  wins: 15, top10: 36,  kills: 221,  damage: 36990,  headshots: 54,  maxKills: 12 },
+        { seasonId: "C6S16", mode: "Squad TPP", tier: "Ranked Squad • SS (84.6)",   matches: 279, wins: 64, top10: 213, kills: 857,  damage: 162378, headshots: 210, maxKills: 14 },
+        { seasonId: "C7S17", mode: "Squad TPP", tier: "Ranked Squad • S (76.7)",    matches: 477, wins: 50, top10: 314, kills: 1471, damage: 283386, headshots: 360, maxKills: 16 },
+        { seasonId: "C6S18", mode: "Squad TPP", tier: "Ranked Squad • S (75.6)",    matches: 403, wins: 45, top10: 281, kills: 1463, damage: 258161, headshots: 355, maxKills: 17 },
+        { seasonId: "C7S19", mode: "Squad TPP", tier: "Ace • SS+ (94.3)",           matches: 65,  wins: 21, top10: 54,  kills: 452,  damage: 74834,  headshots: 110, maxKills: 20 },
+        { seasonId: "C7S20", mode: "Squad TPP", tier: "Ace Dominator • SS (85.1)", matches: 156, wins: 34, top10: 113, kills: 758,  damage: 106867, headshots: 182, maxKills: 18 },
+        { seasonId: "C7S21", mode: "Squad TPP", tier: "Ace Dominator • SS (85.8)", matches: 273, wins: 63, top10: 200, kills: 1100, damage: 197747, headshots: 265, maxKills: 19 },
+        { seasonId: "C8S22", mode: "Squad TPP", tier: "Ranked Squad • S+ (82.6)",   matches: 722, wins: 113,top10: 569, kills: 2556, damage: 499107, headshots: 610, maxKills: 22 },
+        { seasonId: "C8S23", mode: "Squad TPP", tier: "Ace Dominator • SS+ (89.9)",matches: 460, wins: 105,top10: 391, kills: 2010, damage: 380300, headshots: 480, maxKills: 24 },
+        { seasonId: "C8S24", mode: "Squad TPP", tier: "Ace Dominator • SS (86.3)", matches: 303, wins: 41, top10: 264, kills: 1198, damage: 231279, headshots: 290, maxKills: 30 },
+        { seasonId: "C9S25", mode: "Squad TPP", tier: "Ace Dominator • SS (85.6)", matches: 303, wins: 53, top10: 263, kills: 1195, damage: 223190, headshots: 285, maxKills: 21 },
+        { seasonId: "C9S26", mode: "Squad TPP", tier: "Ace Dominator • SS (86.6)", matches: 324, wins: 57, top10: 264, kills: 1507, damage: 272873, headshots: 360, maxKills: 25 },
+        { seasonId: "C9S27", mode: "Squad TPP", tier: "Ace Dominator • SS (85.6)", matches: 320, wins: 53, top10: 254, kills: 1381, damage: 248960, headshots: 330, maxKills: 22 },
+        { seasonId: "S28",   mode: "Squad TPP", tier: "Ace Dominator (23★) • SS+ (89.9)", matches: 288, wins: 60, top10: 231, kills: 1485, damage: 265000, headshots: 355, maxKills: 26 },
+        { seasonId: "S29",   mode: "Squad TPP", tier: "Ace Dominator (21★) • SS+ (89.7)", matches: 381, wins: 71, top10: 296, kills: 2011, damage: 351000, headshots: 480, maxKills: 28 },
+        { seasonId: "S30",   mode: "Squad TPP", tier: "Ace Dominator (22★) • SS+ (90.2)", matches: 377, wins: 75, top10: 301, kills: 1686, damage: 320000, headshots: 400, maxKills: 27 },
+        { seasonId: "S31",   mode: "Squad TPP", tier: "Ace Dominator (15★) • SS+ (91.6)", matches: 186, wins: 44, top10: 156, kills: 1054, damage: 195000, headshots: 250, maxKills: 24 },
+        { seasonId: "S32",   mode: "Squad TPP", tier: "Ace Dominator (23★) • SS+ (91.6)", matches: 225, wins: 47, top10: 177, kills: 1567, damage: 285000, headshots: 375, maxKills: 30 }
       ]
     };
 
@@ -629,26 +636,27 @@
 
     function getTierBadgeHtml(tier) {
       const t = (tier || "Ace").toLowerCase();
-      let style = "bg-amber-500/15 text-amber-300 border-amber-500/40"; // Default Ace
+      let style = "bg-amber-500/15 text-amber-300 border-amber-500/40";
       if (t.includes("conqueror")) {
         style = "bg-gradient-to-r from-rose-500/25 to-amber-500/25 text-rose-200 border-rose-400/50 shadow-sm shadow-rose-500/20";
-      } else if (t.includes("dominator")) {
+      } else if (t.includes("dominator") || t.includes("ss+")) {
         style = "bg-purple-500/20 text-purple-300 border-purple-400/40";
-      } else if (t.includes("master")) {
+      } else if (t.includes("master") || t.includes("ss")) {
         style = "bg-cyan-500/20 text-cyan-300 border-cyan-400/40";
       } else if (t.includes("crown")) {
         style = "bg-emerald-500/20 text-emerald-300 border-emerald-400/40";
-      } else if (t.includes("diamond")) {
-        style = "bg-blue-500/20 text-blue-300 border-blue-400/40";
       }
       return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${style}">${tier}</span>`;
     }
 
-    // Natural sort helper for Season IDs like C9S27 vs C10S28
     function compareSeasonIds(a, b) {
       const parse = (s) => {
-        const m = String(s).match(/C(\d+)S(\d+)/i);
-        return m ? parseInt(m[1], 10) * 1000 + parseInt(m[2], 10) : 0;
+        const str = String(s).toUpperCase();
+        const mC = str.match(/C(\d+)S(\d+)/);
+        if (mC) return parseInt(mC[1], 10) * 1000 + parseInt(mC[2], 10);
+        const mS = str.match(/S(\d+)/);
+        if (mS) return 20000 + parseInt(mS[1], 10);
+        return 0;
       };
       const na = parse(a), nb = parse(b);
       if (na !== nb) return na - nb;
@@ -656,7 +664,7 @@
     }
 
     // =========================================================================
-    // 4. RENDERING PIPELINE (Header, Filters, KPIs, Chart, Table)
+    // 4. RENDERING PIPELINE
     // =========================================================================
     function renderAll() {
       renderProfileHeader();
@@ -672,7 +680,7 @@
       document.getElementById("profileServer").textContent = appState.profile.server;
 
       const badge = document.getElementById("profileHighestTierBadge");
-      badge.outerHTML = getTierBadgeHtml(appState.profile.highestTier).replace("<span ", '<span id="profileHighestTierBadge" ');
+      badge.textContent = appState.profile.highestTier;
 
       const uniqueSeasons = new Set(appState.records.map(r => r.seasonId));
       document.getElementById("trackedSeasonsCount").textContent = uniqueSeasons.size;
@@ -688,7 +696,7 @@
         .sort((a, b) => compareSeasonIds(b.seasonId, a.seasonId));
 
       seasonSelect.innerHTML = `<option value="ALL">All Seasons (Career Aggregate)</option>` +
-        modeRecords.map(r => `<option value="${r.seasonId}">${r.seasonId} • ${r.tier}</option>`).join("");
+        modeRecords.map(r => `<option value="${r.seasonId}">${r.seasonId} • ${r.tier.split('•')[0].trim()}</option>`).join("");
 
       if (previousVal === "ALL" || modeRecords.some(r => r.seasonId === previousVal)) {
         seasonSelect.value = previousVal;
@@ -699,7 +707,6 @@
 
     function handleFilterChange() {
       const mode = document.getElementById("modeFilter").value;
-      // Ensure season dropdown stays valid if mode changed
       const seasonSelect = document.getElementById("seasonFilter");
       const modeRecords = appState.records.filter(r => r.mode === mode);
       if (seasonSelect.value !== "ALL" && !modeRecords.some(r => r.seasonId === seasonSelect.value)) {
@@ -734,7 +741,6 @@
           activeData.headshots += Number(r.headshots);
           activeData.maxKills = Math.max(activeData.maxKills, Number(r.maxKills));
         });
-        // Compare latest season in this mode against career average for delta
         if (modeRecords.length >= 2) {
           deltaSource = computeMetrics(modeRecords[modeRecords.length - 1]);
         }
@@ -751,7 +757,6 @@
       const m = computeMetrics(activeData);
       document.getElementById("kpiMatchesBadge").textContent = `${m.matches.toLocaleString()} Matches Played`;
 
-      // Helper for delta badge
       const formatDelta = (curr, prev, suffix = "", decimals = 1) => {
         if (prev === null || prev === undefined || isNaN(prev)) {
           return `<span class="text-slate-500 text-[11px]">Baseline record</span>`;
@@ -788,7 +793,7 @@
           title: "Average Damage",
           value: Math.round(m.avgDamage).toLocaleString(),
           sub: `${m.damage.toLocaleString()} Total Damage`,
-          pct: Math.min(100, (m.avgDamage / 1100) * 100),
+          pct: Math.min(100, (m.avgDamage / 1150) * 100),
           accent: "from-amber-400 to-orange-500",
           textAccent: "text-amber-400",
           delta: deltaSource ? formatDelta(m.avgDamage, deltaSource.avgDamage, "", 0) : formatDelta(0, null)
@@ -815,7 +820,7 @@
           title: "Most Eliminations",
           value: m.maxKills,
           sub: "Single-Match Kill Record",
-          pct: Math.min(100, (m.maxKills / 25) * 100),
+          pct: Math.min(100, (m.maxKills / 30) * 100),
           accent: "from-rose-400 to-amber-500",
           textAccent: "text-rose-400",
           delta: `<span class="text-slate-400 text-[11px]">Peak lobby dominance</span>`
@@ -842,8 +847,7 @@
         </div>
       `).join("");
 
-      // Update Combat Efficiency Sidebar
-      const aggressionScore = Math.min(100, Math.round((m.kd / 6) * 55 + (m.avgDamage / 1000) * 45));
+      const aggressionScore = Math.min(100, Math.round((m.kd / 7) * 55 + (m.avgDamage / 1100) * 45));
       const survivalScore = Math.min(100, Math.round((m.winRate / 30) * 50 + (m.top10Rate / 85) * 50));
       const precisionScore = Math.min(100, Math.round((m.hsRate / 32) * 100));
       const overallRating = Math.round((aggressionScore + survivalScore + precisionScore) / 3);
@@ -858,7 +862,7 @@
         <div class="p-3.5 rounded-xl bg-obsidian/70 border border-white/10 flex items-center justify-between">
           <div>
             <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Composite Rating</div>
-            <div class="text-xs text-slate-400 mt-0.5">${overallRating >= 80 ? "Tier-1 Esports Caliber" : overallRating >= 60 ? "Ace Division Vanguard" : "Tactical Contender"}</div>
+            <div class="text-xs text-slate-400 mt-0.5">${overallRating >= 85 ? "Tier-1 Esports Elite" : overallRating >= 70 ? "Ace Vanguard" : "Tactical Contender"}</div>
           </div>
           <div class="font-display text-3xl font-bold text-amber-400">${overallRating}<span class="text-sm text-slate-500">/100</span></div>
         </div>
@@ -905,8 +909,8 @@
               pointBackgroundColor: "#f59e0b",
               pointBorderColor: "#080b12",
               pointBorderWidth: 2,
-              pointRadius: 5,
-              pointHoverRadius: 7,
+              pointRadius: 4,
+              pointHoverRadius: 6,
               tension: 0.35,
               fill: true,
               yAxisID: "yKd"
@@ -921,8 +925,8 @@
               pointBackgroundColor: "#06b6d4",
               pointBorderColor: "#080b12",
               pointBorderWidth: 2,
-              pointRadius: 4.5,
-              pointHoverRadius: 6.5,
+              pointRadius: 4,
+              pointHoverRadius: 6,
               tension: 0.35,
               fill: false,
               yAxisID: "yDmg"
@@ -948,7 +952,7 @@
           scales: {
             x: {
               grid: { color: "rgba(255, 255, 255, 0.05)" },
-              ticks: { color: "#94a3b8", font: { family: "Rajdhani", weight: "600", size: 13 } }
+              ticks: { color: "#94a3b8", font: { family: "Rajdhani", weight: "600", size: 12 }, maxRotation: 45 }
             },
             yKd: {
               type: "linear",
@@ -984,9 +988,11 @@
     function renderSeasonTable() {
       const mode = document.getElementById("modeFilter").value;
       const activeSeason = document.getElementById("seasonFilter").value;
+      const ratingFilter = document.getElementById("ratingFilter").value;
+      const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+
       document.getElementById("tableModePill").textContent = mode;
 
-      // Clear sort indicators
       ["seasonId", "tier", "matches", "wins", "winRate", "kills", "kd", "avgDamage", "hsRate"].forEach(f => {
         const el = document.getElementById(`sort-${f}`);
         if (el) el.textContent = currentSort.field === f ? (currentSort.dir === "asc" ? "↑" : "↓") : "";
@@ -994,7 +1000,12 @@
 
       const indexedRecords = appState.records
         .map((rec, originalIndex) => ({ rec, originalIndex, m: computeMetrics(rec) }))
-        .filter(item => item.rec.mode === mode);
+        .filter(item => {
+          if (item.rec.mode !== mode) return false;
+          if (ratingFilter !== "ALL" && !item.rec.tier.toUpperCase().includes(ratingFilter.toUpperCase())) return false;
+          if (searchTerm && !item.rec.seasonId.toLowerCase().includes(searchTerm) && !item.rec.tier.toLowerCase().includes(searchTerm)) return false;
+          return true;
+        });
 
       indexedRecords.sort((a, b) => {
         const dir = currentSort.dir === "asc" ? 1 : -1;
@@ -1009,7 +1020,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="10" class="py-10 px-4 text-center text-slate-400">
-              No season records found for <span class="text-amber-400 font-semibold">${mode}</span>. Click <span class="text-white font-semibold">+ Add / Scan Season</span> to log your stats.
+              No matching season records found. Try adjusting your search or rating filter.
             </td>
           </tr>
         `;
@@ -1058,15 +1069,14 @@
     }
 
     // =========================================================================
-    // 5. MODAL CONTROLLERS (Add/Edit Season, Profile, Delete, Backup)
+    // 5. MODAL CONTROLLERS & BACKUPS
     // =========================================================================
     function openSeasonModal() {
       const currentMode = document.getElementById("modeFilter").value;
       document.getElementById("seasonModalTitle").textContent = "Add / Scan Season Telemetry";
       document.getElementById("editOriginalKey").value = "";
-      document.getElementById("fSeasonId").value = "C11S32";
+      document.getElementById("fSeasonId").value = "S33";
       document.getElementById("fMode").value = currentMode;
-      document.getElementById("fTier").value = "Ace Dominator";
       document.getElementById("fMatches").value = "";
       document.getElementById("fWins").value = "";
       document.getElementById("fTop10").value = "";
@@ -1123,7 +1133,6 @@
         appState.records[Number(editIdxStr)] = newRecord;
         showToast(`Updated ${newRecord.seasonId} (${newRecord.mode})`, "success");
       } else {
-        // Check if same Season + Mode already exists; overwrite if so
         const existingIdx = appState.records.findIndex(
           r => r.seasonId === newRecord.seasonId && r.mode === newRecord.mode
         );
@@ -1143,7 +1152,6 @@
       renderAll();
     });
 
-    // Delete Workflow
     function requestDeleteSeason(index) {
       const rec = appState.records[index];
       if (!rec) return;
@@ -1165,7 +1173,6 @@
       }
     });
 
-    // Profile Modal
     function openProfileModal() {
       document.getElementById("pName").value = appState.profile.name;
       document.getElementById("pUid").value = appState.profile.uid;
@@ -1188,7 +1195,6 @@
       showToast("Operative profile updated", "success");
     });
 
-    // JSON Backup Export / Import & Sample Reset
     function exportJsonBackup() {
       const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -1223,16 +1229,8 @@
       e.target.value = "";
     });
 
-    function resetDemoData() {
-      appState = structuredClone(DEFAULT_STATE);
-      saveState();
-      document.getElementById("seasonFilter").value = "ALL";
-      renderAll();
-      showToast("Restored default multi-season sample data", "info");
-    }
-
     // =========================================================================
-    // 6. TESSERACT.JS SCREENSHOT OCR SCANNER + IMAGE PREPROCESSING
+    // 6. TESSERACT.JS SCREENSHOT OCR SCANNER
     // =========================================================================
     function preprocessScreenshot(file) {
       return new Promise((resolve) => {
@@ -1269,7 +1267,7 @@
         return null;
       };
 
-      const seasonMatch = clean.match(/\b(C\d{1,2}S\d{1,2})\b/i);
+      const seasonMatch = clean.match(/\b(C\d{1,2}S\d{1,2}|S\d{1,2})\b/i);
 
       return {
         seasonId: seasonMatch ? seasonMatch[1].toUpperCase() : null,
@@ -1332,7 +1330,6 @@
       e.target.value = "";
     });
 
-    // Initialize Dashboard on Load
     window.addEventListener("DOMContentLoaded", renderAll);
   </script>
 </body>
