@@ -1,249 +1,1339 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PUBG Mobile Player Stats</title>
+  <title>PUBG Mobile Tactical Telemetry & Career Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for Season Progression Trends -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Tesseract.js v5 for Client-Side Screenshot OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Google Fonts: Inter & Rajdhani for Tactical Esports Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Rajdhani', 'sans-serif'],
+          },
+          colors: {
+            obsidian: '#080b12',
+            tactical: '#0f1623',
+            card: 'rgba(17, 25, 40, 0.75)',
+            gold: '#f59e0b',
+            cyan: '#06b6d4',
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    :root {
-      --bg: #0f1218;
-      --card: #181d27;
-      --accent: #f2a900;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-      --border: #2a3140;
-    }
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      padding: 2rem;
+      background-color: #080b12;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(245, 158, 11, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 85% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 35%),
+        linear-gradient(to bottom, rgba(8, 11, 18, 0.92), rgba(8, 11, 18, 0.98)),
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 40px);
+      color: #f3f4f6;
+      min-height: 100vh;
     }
-    .container { max-width: 1000px; margin: 0 auto; }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+
+    .glass-panel {
+      background: rgba(16, 23, 38, 0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     }
-    .player-info h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
-    .player-info p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
-    .controls button, .controls select {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
+
+    .glass-panel-hover {
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .controls button.primary {
-      background: var(--accent);
-      color: #000;
-      border-color: var(--accent);
+    .glass-panel-hover:hover {
+      border-color: rgba(245, 158, 11, 0.45);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(245, 158, 11, 0.12);
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #080b12; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+
+    /* Tactical Modal Styling */
+    dialog::backdrop {
+      background: rgba(4, 6, 10, 0.82);
+      backdrop-filter: blur(6px);
     }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
+    dialog[open] {
+      animation: modalFadeIn 0.2s ease-out;
     }
-    .card .label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .card .value { font-size: 1.9rem; font-weight: 700; margin-top: 0.4rem; }
-    .card .sub { color: var(--accent); font-size: 0.8rem; margin-top: 0.25rem; }
-    
-    /* Modal for Editing Stats */
-    dialog {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      max-width: 450px;
-      width: 90%;
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
     }
-    dialog::backdrop { background: rgba(0, 0, 0, 0.75); }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
-    .form-group { display: flex; flex-direction: column; }
-    .form-group label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
-    .form-group input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.5rem;
-      border-radius: 4px;
-    }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
   </style>
 </head>
-<body>
-  <div class="container">
-    <header>
-      <div class="player-info">
-        <h1 id="displayName">PlayerOne</h1>
-        <p>UID: <span id="displayUid">5123456789</span> • Tier: <span id="displayTier">Ace Dominator</span></p>
-      </div>
-      <div class="controls">
-        <select id="modeSelect" onchange="renderStats()">
-          <option value="squad">Squad (TPP)</option>
-          <option value="duo">Duo (TPP)</option>
-          <option value="solo">Solo (TPP)</option>
-        </select>
-        <button class="primary" onclick="openEditor()">Update Stats</button>
-      </div>
-    </header>
+<body class="antialiased selection:bg-amber-500 selection:text-black pb-14">
 
-    <div class="grid" id="statsGrid"></div>
-  </div>
+  <!-- Toast Notification Container (Replaces alert/confirm) -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
-  <dialog id="editorDialog">
-    <h3 style="margin-top:0;">Edit Mode Stats</h3>
-    <form id="statsForm">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Player Name</label>
-          <input type="text" id="inName" required />
+  <!-- Top Navigation / Tactical Bar -->
+  <nav class="border-b border-white/10 bg-obsidian/80 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-black font-display font-bold text-xl shadow-lg shadow-amber-500/20">
+          P
         </div>
-        <div class="form-group">
-          <label>Character UID</label>
-          <input type="text" id="inUid" required />
-        </div>
-        <div class="form-group">
-          <label>Current Tier</label>
-          <input type="text" id="inTier" required />
-        </div>
-        <div class="form-group">
-          <label>Matches Played</label>
-          <input type="number" id="inMatches" min="1" required />
-        </div>
-        <div class="form-group">
-          <label>Wins (Chicken Dinners)</label>
-          <input type="number" id="inWins" min="0" required />
-        </div>
-        <div class="form-group">
-          <label>Top 10 Finishes</label>
-          <input type="number" id="inTop10" min="0" required />
-        </div>
-        <div class="form-group">
-          <label>Total Eliminations</label>
-          <input type="number" id="inKills" min="0" required />
-        </div>
-        <div class="form-group">
-          <label>Total Damage</label>
-          <input type="number" id="inDamage" min="0" required />
-        </div>
-        <div class="form-group">
-          <label>Headshot Kills</label>
-          <input type="number" id="inHeadshots" min="0" required />
-        </div>
-        <div class="form-group">
-          <label>Highest Eliminations</label>
-          <input type="number" id="inMaxKills" min="0" required />
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-bold text-lg tracking-wider uppercase text-white">PUBGM <span class="text-amber-400">TELEMETRY</span></span>
+            <span class="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">v4.2 Tactical</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Multi-Season Combat Analytics & OCR Scanner</p>
         </div>
       </div>
-      <div class="modal-actions">
-        <button type="button" onclick="document.getElementById('editorDialog').close()">Cancel</button>
-        <button type="submit" class="primary">Save Stats</button>
+
+      <!-- Backup & Quick Actions -->
+      <div class="flex items-center gap-2">
+        <button onclick="exportJsonBackup()" title="Export JSON Backup" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span class="hidden md:inline">Export JSON</span>
+        </button>
+
+        <label title="Import JSON Backup" class="cursor-pointer px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span class="hidden md:inline">Import</span>
+          <input type="file" id="jsonImportInput" accept=".json" class="hidden" />
+        </label>
+
+        <button onclick="openSeasonModal()" class="px-3.5 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          <span>Add / Scan Season</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- 1. PLAYER PROFILE HEADER -->
+    <section class="glass-panel rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        
+        <!-- Avatar & Identity -->
+        <div class="flex items-center gap-4">
+          <div class="relative shrink-0">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-amber-500/60 flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <svg class="w-9 h-9 sm:w-11 sm:h-11 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <span class="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-cyan-500 text-black shadow">
+              LV. 78
+            </span>
+          </div>
+
+          <div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <h1 id="profileName" class="font-display text-2xl sm:text-3xl font-bold tracking-wide text-white">ValkyrieOps</h1>
+              <span id="profileHighestTierBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                Conqueror
+              </span>
+              <button onclick="openProfileModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-amber-400 transition" title="Edit Profile">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs sm:text-sm text-slate-400">
+              <button onclick="copyUid()" class="flex items-center gap-1.5 hover:text-amber-400 transition cursor-pointer group" title="Click to copy UID">
+                <span class="text-slate-500 font-medium">UID:</span>
+                <span id="profileUid" class="font-mono text-slate-200 group-hover:text-amber-400">5184920371</span>
+                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
+              <span class="text-slate-600">•</span>
+              <div>
+                <span class="text-slate-500 font-medium">Server:</span>
+                <span id="profileServer" class="text-cyan-400 font-medium">North America</span>
+              </div>
+              <span class="text-slate-600">•</span>
+              <div>
+                <span class="text-slate-500 font-medium">Tracked Seasons:</span>
+                <span id="trackedSeasonsCount" class="text-slate-200 font-semibold">5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SEASON & MODE FILTER CONTROLS -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-obsidian/60 p-3 rounded-xl border border-white/5">
+          <div class="flex flex-col">
+            <label for="seasonFilter" class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Season Scope</label>
+            <select id="seasonFilter" onchange="handleFilterChange()" class="bg-slate-900/90 text-white text-sm font-medium rounded-lg px-3 py-2 border border-white/10 focus:border-amber-500 focus:outline-none cursor-pointer">
+              <option value="ALL">All Seasons (Career Aggregate)</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col">
+            <label for="modeFilter" class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Combat Mode</label>
+            <select id="modeFilter" onchange="handleFilterChange()" class="bg-slate-900/90 text-white text-sm font-medium rounded-lg px-3 py-2 border border-white/10 focus:border-cyan-500 focus:outline-none cursor-pointer">
+              <option value="Squad TPP">Squad (TPP)</option>
+              <option value="Duo TPP">Duo (TPP)</option>
+              <option value="Solo TPP">Solo (TPP)</option>
+              <option value="Squad FPP">Squad (FPP)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. KPI SUMMARY CARDS (6 Metrics with Progress Bars & Deltas) -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <h2 id="kpiSectionTitle" class="font-display text-lg font-bold uppercase tracking-wider text-slate-200">
+            Career Aggregate Telemetry • Squad (TPP)
+          </h2>
+        </div>
+        <span id="kpiMatchesBadge" class="text-xs font-medium px-2.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/10">
+          0 Matches Played
+        </span>
+      </div>
+
+      <div id="kpiGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- 4. VISUAL TREND CHART & SEASON PERFORMANCE OVERVIEW -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="glass-panel rounded-2xl p-5 lg:col-span-2 flex flex-col justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="font-display text-lg font-bold uppercase tracking-wider text-white">Season Progression Telemetry</h3>
+            <p class="text-xs text-slate-400">F/D Ratio & Average Damage trajectory across recorded seasons</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs">
+            <span class="flex items-center gap-1.5 text-amber-400 font-medium">
+              <span class="w-3 h-1.5 rounded-full bg-amber-400"></span> F/D Ratio
+            </span>
+            <span class="flex items-center gap-1.5 text-cyan-400 font-medium">
+              <span class="w-3 h-1.5 rounded-full bg-cyan-400"></span> Avg Damage
+            </span>
+          </div>
+        </div>
+        <div class="relative w-full h-64 sm:h-72">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Tactical Combat Breakdown Card -->
+      <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between">
+        <div>
+          <h3 class="font-display text-lg font-bold uppercase tracking-wider text-white">Combat Efficiency Index</h3>
+          <p class="text-xs text-slate-400 mb-4">Benchmark rating for selected scope</p>
+          
+          <div class="space-y-4" id="efficiencyBreakdown">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+          <span>Tip: Click any row in the table below to inspect that season.</span>
+          <button onclick="resetToAllSeasons()" class="text-cyan-400 hover:text-cyan-300 font-semibold shrink-0 ml-2 cursor-pointer">
+            View All
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. INTERACTIVE SEASON-BY-SEASON HISTORY TABLE -->
+    <section class="glass-panel rounded-2xl overflow-hidden">
+      <div class="p-5 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="font-display text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2">
+            Season-by-Season Combat Ledger
+            <span id="tableModePill" class="text-xs font-sans font-semibold px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              Squad TPP
+            </span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Click column headers to sort • Click any row to focus KPI cards on that season</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openSeasonModal()" class="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Scan Screenshot
+          </button>
+          <button onclick="resetDemoData()" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/10 text-xs font-medium transition cursor-pointer" title="Restore Default Sample Seasons">
+            Reset Sample
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/10 bg-obsidian/50 text-[11px] uppercase tracking-wider text-slate-400 font-semibold select-none">
+              <th class="py-3.5 px-4 cursor-pointer hover:text-amber-400 transition" onclick="sortTable('seasonId')">
+                Season <span id="sort-seasonId" class="text-amber-400">↓</span>
+              </th>
+              <th class="py-3.5 px-4 cursor-pointer hover:text-amber-400 transition" onclick="sortTable('tier')">
+                Peak Tier <span id="sort-tier"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('matches')">
+                Matches <span id="sort-matches"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('wins')">
+                Wins <span id="sort-wins"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('winRate')">
+                Win % <span id="sort-winRate"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('kills')">
+                Eliminations <span id="sort-kills"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('kd')">
+                F/D Ratio <span id="sort-kd"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('avgDamage')">
+                Avg Damage <span id="sort-avgDamage"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:text-amber-400 transition" onclick="sortTable('hsRate')">
+                Headshot % <span id="sort-hsRate"></span>
+              </th>
+              <th class="py-3.5 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="seasonTableBody" class="divide-y divide-white/5 text-sm">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL 1: ADD / EDIT / SCAN SEASON STATS -->
+  <dialog id="seasonModal" class="glass-panel rounded-2xl p-0 max-w-2xl w-11/12 text-slate-100 border border-white/15 shadow-2xl">
+    <div class="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-obsidian/60 rounded-t-2xl">
+      <div>
+        <h3 id="seasonModalTitle" class="font-display text-xl font-bold uppercase tracking-wider text-amber-400">Add / Scan Season Telemetry</h3>
+        <p class="text-xs text-slate-400">Upload a PUBG Mobile Statistics screenshot or enter values manually</p>
+      </div>
+      <button onclick="closeSeasonModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="p-5 sm:p-6 space-y-5 max-h-[82vh] overflow-y-auto">
+      <!-- OCR Upload Dropzone -->
+      <div class="rounded-xl border-2 border-dashed border-cyan-500/40 bg-cyan-500/5 p-4 text-center hover:border-cyan-400 transition">
+        <label class="cursor-pointer flex flex-col items-center justify-center gap-1.5">
+          <div class="w-10 h-10 rounded-full bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <span class="text-sm font-semibold text-cyan-300">Upload PUBG Mobile Statistics Screenshot (OCR Auto-Fill)</span>
+          <span class="text-xs text-slate-400">Best taken on Profile → Statistics tab (PNG / JPG)</span>
+          <input type="file" id="ocrFileInput" accept="image/*" class="hidden" />
+        </label>
+
+        <!-- OCR Progress Bar -->
+        <div id="ocrProgressWrap" class="hidden mt-3 space-y-1.5">
+          <div class="flex justify-between text-xs text-cyan-300 font-medium">
+            <span id="ocrStatusLabel">Preprocessing image...</span>
+            <span id="ocrPercentLabel">0%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div id="ocrProgressBar" class="h-full bg-gradient-to-r from-cyan-400 to-amber-400 transition-all duration-150" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Inputs -->
+      <form id="seasonForm" class="space-y-4">
+        <input type="hidden" id="editOriginalKey" value="" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Season ID</label>
+            <input type="text" id="fSeasonId" placeholder="e.g. C11S32" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white uppercase focus:border-amber-500 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Mode</label>
+            <select id="fMode" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
+              <option value="Squad TPP">Squad TPP</option>
+              <option value="Duo TPP">Duo TPP</option>
+              <option value="Solo TPP">Solo TPP</option>
+              <option value="Squad FPP">Squad FPP</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Peak Tier</label>
+            <select id="fTier" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
+              <option value="Conqueror">Conqueror</option>
+              <option value="Ace Dominator">Ace Dominator</option>
+              <option value="Ace Master">Ace Master</option>
+              <option value="Ace">Ace</option>
+              <option value="Crown">Crown</option>
+              <option value="Diamond">Diamond</option>
+              <option value="Platinum">Platinum</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Matches Played</label>
+            <input type="number" id="fMatches" min="1" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Wins (WWCD)</label>
+            <input type="number" id="fWins" min="0" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Top 10 Finishes</label>
+            <input type="number" id="fTop10" min="0" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Eliminations</label>
+            <input type="number" id="fKills" min="0" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs text-slate-400 mb-1">Total Damage Dealt</label>
+            <input type="number" id="fDamage" min="0" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Headshot Kills</label>
+            <input type="number" id="fHeadshots" min="0" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Most Eliminations</label>
+            <input type="number" id="fMaxKills" min="0" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Raw OCR Output Preview -->
+        <div id="rawOcrPreview" class="hidden">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] uppercase tracking-wider font-semibold text-amber-400">Raw OCR Scan Output (Verify Parsed Numbers)</span>
+          </div>
+          <pre id="rawOcrOutputText" class="bg-obsidian/90 border border-white/10 rounded-lg p-2.5 text-[11px] text-slate-400 max-h-24 overflow-y-auto whitespace-pre-wrap font-mono"></pre>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+          <button type="button" onclick="closeSeasonModal()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium text-slate-300 cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-sm shadow-lg shadow-amber-500/20 cursor-pointer">
+            Save Season Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- MODAL 2: EDIT PLAYER PROFILE -->
+  <dialog id="profileModal" class="glass-panel rounded-2xl p-0 max-w-md w-11/12 text-slate-100 border border-white/15 shadow-2xl">
+    <div class="p-5 border-b border-white/10 flex items-center justify-between bg-obsidian/60 rounded-t-2xl">
+      <h3 class="font-display text-lg font-bold uppercase tracking-wider text-amber-400">Edit Operative Profile</h3>
+      <button onclick="document.getElementById('profileModal').close()" class="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="profileForm" class="p-5 space-y-4">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">In-Game Name (IGN)</label>
+        <input type="text" id="pName" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Character UID</label>
+        <input type="text" id="pUid" required class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm font-mono text-white focus:border-amber-500 focus:outline-none" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Server Region</label>
+          <select id="pServer" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
+            <option value="North America">North America</option>
+            <option value="Europe">Europe</option>
+            <option value="Asia">Asia</option>
+            <option value="Middle East">Middle East</option>
+            <option value="South America">South America</option>
+            <option value="KRJP">KRJP</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Highest Career Tier</label>
+          <select id="pHighestTier" class="w-full bg-obsidian border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
+            <option value="Conqueror">Conqueror</option>
+            <option value="Ace Dominator">Ace Dominator</option>
+            <option value="Ace Master">Ace Master</option>
+            <option value="Ace">Ace</option>
+            <option value="Crown">Crown</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-3 border-t border-white/10">
+        <button type="button" onclick="document.getElementById('profileModal').close()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-slate-300 cursor-pointer">Cancel</button>
+        <button type="submit" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm cursor-pointer">Save Profile</button>
       </div>
     </form>
   </dialog>
 
+  <!-- MODAL 3: DELETE CONFIRMATION (Custom Modal instead of confirm()) -->
+  <dialog id="deleteConfirmModal" class="glass-panel rounded-2xl p-5 max-w-sm w-11/12 text-slate-100 border border-rose-500/30 shadow-2xl">
+    <h3 class="font-display text-lg font-bold uppercase tracking-wider text-rose-400">Delete Season Record?</h3>
+    <p id="deleteConfirmText" class="text-sm text-slate-300 mt-2">Are you sure you want to remove this season from your telemetry ledger?</p>
+    <div class="flex justify-end gap-2 mt-5">
+      <button onclick="document.getElementById('deleteConfirmModal').close()" class="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 cursor-pointer">Cancel</button>
+      <button id="confirmDeleteBtn" class="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold cursor-pointer">Delete Record</button>
+    </div>
+  </dialog>
+
   <script>
-    const defaultData = {
-      profile: { name: "ShadowHunter", uid: "5194820194", tier: "Ace Master" },
-      modes: {
-        squad: { matches: 142, wins: 31, top10: 98, kills: 615, damage: 94200, headshots: 148, maxKills: 16 },
-        duo:   { matches: 48,  wins: 9,  top10: 32, kills: 174, damage: 27100, headshots: 41,  maxKills: 11 },
-        solo:  { matches: 20,  wins: 4,  top10: 14, kills: 68,  damage: 10500, headshots: 19,  maxKills: 9 }
-      }
+    // =========================================================================
+    // 1. REALISTIC MULTI-SEASON SAMPLE DATASET (C9S27 through C11S31)
+    // =========================================================================
+    const STORAGE_KEY = "pubgm_tactical_telemetry_v1";
+
+    const DEFAULT_STATE = {
+      profile: {
+        name: "ValkyrieOps",
+        uid: "5184920371",
+        server: "North America",
+        highestTier: "Conqueror"
+      },
+      records: [
+        // Squad TPP Seasons
+        { seasonId: "C9S27",  mode: "Squad TPP", tier: "Ace Master",    matches: 164, wins: 32, top10: 112, kills: 642,  damage: 104960, headshots: 148, maxKills: 15 },
+        { seasonId: "C10S28", mode: "Squad TPP", tier: "Ace Dominator", matches: 192, wins: 44, top10: 138, kills: 825,  damage: 136320, headshots: 198, maxKills: 18 },
+        { seasonId: "C10S29", mode: "Squad TPP", tier: "Ace Dominator", matches: 178, wins: 39, top10: 126, kills: 798,  damage: 131720, headshots: 192, maxKills: 17 },
+        { seasonId: "C10S30", mode: "Squad TPP", tier: "Conqueror",     matches: 224, wins: 58, top10: 172, kills: 1098, damage: 181440, headshots: 274, maxKills: 21 },
+        { seasonId: "C11S31", mode: "Squad TPP", tier: "Ace Dominator", matches: 135, wins: 36, top10: 104, kills: 688,  damage: 114750, headshots: 179, maxKills: 19 },
+
+        // Duo TPP Seasons
+        { seasonId: "C10S29", mode: "Duo TPP",   tier: "Ace",           matches: 62,  wins: 14, top10: 44,  kills: 248,  damage: 40300,  headshots: 59,  maxKills: 13 },
+        { seasonId: "C10S30", mode: "Duo TPP",   tier: "Ace Master",    matches: 74,  wins: 19, top10: 55,  kills: 325,  damage: 53280,  headshots: 81,  maxKills: 15 },
+        { seasonId: "C11S31", mode: "Duo TPP",   tier: "Ace",           matches: 48,  wins: 12, top10: 36,  kills: 216,  damage: 35520,  headshots: 54,  maxKills: 14 },
+
+        // Solo TPP Seasons
+        { seasonId: "C10S30", mode: "Solo TPP",  tier: "Crown",         matches: 34,  wins: 8,  top10: 24,  kills: 139,  damage: 22440,  headshots: 38,  maxKills: 12 },
+        { seasonId: "C11S31", mode: "Solo TPP",  tier: "Ace",           matches: 29,  wins: 7,  top10: 21,  kills: 128,  damage: 20880,  headshots: 35,  maxKills: 11 },
+
+        // Squad FPP Seasons
+        { seasonId: "C11S31", mode: "Squad FPP", tier: "Crown",         matches: 41,  wins: 11, top10: 30,  kills: 197,  damage: 31980,  headshots: 52,  maxKills: 16 }
+      ]
     };
 
-    let playerData = JSON.parse(localStorage.getItem("pubgm_stats")) || defaultData;
+    let appState = loadState();
+    let currentSort = { field: "seasonId", dir: "desc" };
+    let trendChartInstance = null;
+    let pendingDeleteIndex = null;
 
-    function renderStats() {
-      const mode = document.getElementById("modeSelect").value;
-      const s = playerData.modes[mode];
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(DEFAULT_STATE);
+        const parsed = JSON.parse(raw);
+        if (!parsed.profile || !Array.isArray(parsed.records)) return structuredClone(DEFAULT_STATE);
+        return parsed;
+      } catch (e) {
+        console.error("Failed to load local storage:", e);
+        return structuredClone(DEFAULT_STATE);
+      }
+    }
 
-      document.getElementById("displayName").textContent = playerData.profile.name;
-      document.getElementById("displayUid").textContent = playerData.profile.uid;
-      document.getElementById("displayTier").textContent = playerData.profile.tier;
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
 
-      // Derived metrics
-      const kd = (s.kills / Math.max(1, s.matches)).toFixed(2);
-      const winRate = ((s.wins / Math.max(1, s.matches)) * 100).toFixed(1) + "%";
-      const top10Rate = ((s.top10 / Math.max(1, s.matches)) * 100).toFixed(1) + "%";
-      const avgDamage = Math.round(s.damage / Math.max(1, s.matches));
-      const hsRate = ((s.headshots / Math.max(1, s.kills)) * 100).toFixed(1) + "%";
+    // =========================================================================
+    // 2. TOAST NOTIFICATIONS & CLIPBOARD HELPERS
+    // =========================================================================
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      const colors = {
+        success: "border-emerald-500/40 bg-slate-900/95 text-emerald-300",
+        error: "border-rose-500/40 bg-slate-900/95 text-rose-300",
+        info: "border-amber-500/40 bg-slate-900/95 text-amber-300"
+      };
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(6px)";
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
 
-      const metrics = [
-        { label: "F/D Ratio (K/D)", value: kd, sub: `${s.kills} Total Eliminations` },
-        { label: "Win Ratio", value: winRate, sub: `${s.wins} Chicken Dinners` },
-        { label: "Avg. Damage", value: avgDamage, sub: `${s.damage.toLocaleString()} Total Damage` },
-        { label: "Top 10 Rate", value: top10Rate, sub: `${s.top10} Top 10s in ${s.matches} Matches` },
-        { label: "Headshot Rate", value: hsRate, sub: `${s.headshots} Headshot Kills` },
-        { label: "Most Eliminations", value: s.maxKills, sub: "Single Match Record" }
+    function copyUid() {
+      const uid = appState.profile.uid;
+      const tempInput = document.createElement("input");
+      tempInput.value = uid;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+        showToast(`Copied UID ${uid} to clipboard`, "success");
+      } catch (err) {
+        showToast("Unable to copy UID", "error");
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    // =========================================================================
+    // 3. METRICS CALCULATION & TIER BADGE STYLING
+    // =========================================================================
+    function computeMetrics(rec) {
+      const m = Math.max(1, Number(rec.matches) || 1);
+      const kills = Number(rec.kills) || 0;
+      const wins = Number(rec.wins) || 0;
+      const top10 = Number(rec.top10) || 0;
+      const damage = Number(rec.damage) || 0;
+      const headshots = Number(rec.headshots) || 0;
+      const maxKills = Number(rec.maxKills) || 0;
+
+      return {
+        matches: Number(rec.matches) || 0,
+        wins,
+        top10,
+        kills,
+        damage,
+        headshots,
+        maxKills,
+        kd: kills / m,
+        winRate: (wins / m) * 100,
+        top10Rate: (top10 / m) * 100,
+        avgDamage: damage / m,
+        hsRate: kills > 0 ? (headshots / kills) * 100 : 0
+      };
+    }
+
+    function getTierBadgeHtml(tier) {
+      const t = (tier || "Ace").toLowerCase();
+      let style = "bg-amber-500/15 text-amber-300 border-amber-500/40"; // Default Ace
+      if (t.includes("conqueror")) {
+        style = "bg-gradient-to-r from-rose-500/25 to-amber-500/25 text-rose-200 border-rose-400/50 shadow-sm shadow-rose-500/20";
+      } else if (t.includes("dominator")) {
+        style = "bg-purple-500/20 text-purple-300 border-purple-400/40";
+      } else if (t.includes("master")) {
+        style = "bg-cyan-500/20 text-cyan-300 border-cyan-400/40";
+      } else if (t.includes("crown")) {
+        style = "bg-emerald-500/20 text-emerald-300 border-emerald-400/40";
+      } else if (t.includes("diamond")) {
+        style = "bg-blue-500/20 text-blue-300 border-blue-400/40";
+      }
+      return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${style}">${tier}</span>`;
+    }
+
+    // Natural sort helper for Season IDs like C9S27 vs C10S28
+    function compareSeasonIds(a, b) {
+      const parse = (s) => {
+        const m = String(s).match(/C(\d+)S(\d+)/i);
+        return m ? parseInt(m[1], 10) * 1000 + parseInt(m[2], 10) : 0;
+      };
+      const na = parse(a), nb = parse(b);
+      if (na !== nb) return na - nb;
+      return String(a).localeCompare(String(b));
+    }
+
+    // =========================================================================
+    // 4. RENDERING PIPELINE (Header, Filters, KPIs, Chart, Table)
+    // =========================================================================
+    function renderAll() {
+      renderProfileHeader();
+      syncSeasonDropdown();
+      renderKpiCards();
+      renderTrendChart();
+      renderSeasonTable();
+    }
+
+    function renderProfileHeader() {
+      document.getElementById("profileName").textContent = appState.profile.name;
+      document.getElementById("profileUid").textContent = appState.profile.uid;
+      document.getElementById("profileServer").textContent = appState.profile.server;
+
+      const badge = document.getElementById("profileHighestTierBadge");
+      badge.outerHTML = getTierBadgeHtml(appState.profile.highestTier).replace("<span ", '<span id="profileHighestTierBadge" ');
+
+      const uniqueSeasons = new Set(appState.records.map(r => r.seasonId));
+      document.getElementById("trackedSeasonsCount").textContent = uniqueSeasons.size;
+    }
+
+    function syncSeasonDropdown() {
+      const mode = document.getElementById("modeFilter").value;
+      const seasonSelect = document.getElementById("seasonFilter");
+      const previousVal = seasonSelect.value;
+
+      const modeRecords = appState.records
+        .filter(r => r.mode === mode)
+        .sort((a, b) => compareSeasonIds(b.seasonId, a.seasonId));
+
+      seasonSelect.innerHTML = `<option value="ALL">All Seasons (Career Aggregate)</option>` +
+        modeRecords.map(r => `<option value="${r.seasonId}">${r.seasonId} • ${r.tier}</option>`).join("");
+
+      if (previousVal === "ALL" || modeRecords.some(r => r.seasonId === previousVal)) {
+        seasonSelect.value = previousVal;
+      } else {
+        seasonSelect.value = "ALL";
+      }
+    }
+
+    function handleFilterChange() {
+      const mode = document.getElementById("modeFilter").value;
+      // Ensure season dropdown stays valid if mode changed
+      const seasonSelect = document.getElementById("seasonFilter");
+      const modeRecords = appState.records.filter(r => r.mode === mode);
+      if (seasonSelect.value !== "ALL" && !modeRecords.some(r => r.seasonId === seasonSelect.value)) {
+        seasonSelect.value = "ALL";
+      }
+      renderAll();
+    }
+
+    function resetToAllSeasons() {
+      document.getElementById("seasonFilter").value = "ALL";
+      renderAll();
+    }
+
+    function renderKpiCards() {
+      const mode = document.getElementById("modeFilter").value;
+      const selectedSeason = document.getElementById("seasonFilter").value;
+      const modeRecords = appState.records
+        .filter(r => r.mode === mode)
+        .sort((a, b) => compareSeasonIds(a.seasonId, b.seasonId));
+
+      let activeData = { matches: 0, wins: 0, top10: 0, kills: 0, damage: 0, headshots: 0, maxKills: 0 };
+      let deltaSource = null;
+
+      if (selectedSeason === "ALL") {
+        document.getElementById("kpiSectionTitle").textContent = `Career Aggregate Telemetry • ${mode}`;
+        modeRecords.forEach(r => {
+          activeData.matches += Number(r.matches);
+          activeData.wins += Number(r.wins);
+          activeData.top10 += Number(r.top10);
+          activeData.kills += Number(r.kills);
+          activeData.damage += Number(r.damage);
+          activeData.headshots += Number(r.headshots);
+          activeData.maxKills = Math.max(activeData.maxKills, Number(r.maxKills));
+        });
+        // Compare latest season in this mode against career average for delta
+        if (modeRecords.length >= 2) {
+          deltaSource = computeMetrics(modeRecords[modeRecords.length - 1]);
+        }
+      } else {
+        const idx = modeRecords.findIndex(r => r.seasonId === selectedSeason);
+        const target = modeRecords[idx];
+        document.getElementById("kpiSectionTitle").textContent = `${selectedSeason} Telemetry (${target?.tier || ""}) • ${mode}`;
+        if (target) {
+          activeData = { ...target };
+          if (idx > 0) deltaSource = computeMetrics(modeRecords[idx - 1]);
+        }
+      }
+
+      const m = computeMetrics(activeData);
+      document.getElementById("kpiMatchesBadge").textContent = `${m.matches.toLocaleString()} Matches Played`;
+
+      // Helper for delta badge
+      const formatDelta = (curr, prev, suffix = "", decimals = 1) => {
+        if (prev === null || prev === undefined || isNaN(prev)) {
+          return `<span class="text-slate-500 text-[11px]">Baseline record</span>`;
+        }
+        const diff = curr - prev;
+        if (Math.abs(diff) < 0.01) return `<span class="text-slate-400 text-[11px]">No change vs prev</span>`;
+        const isUp = diff > 0;
+        const sign = isUp ? "+" : "";
+        const color = isUp ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" : "text-rose-400 bg-rose-500/10 border-rose-500/30";
+        const label = selectedSeason === "ALL" ? "latest season" : "prev season";
+        return `<span class="inline-flex items-center px-1.5 py-0.5 rounded border text-[11px] font-semibold ${color}">${sign}${diff.toFixed(decimals)}${suffix} vs ${label}</span>`;
+      };
+
+      const cards = [
+        {
+          title: "F/D Ratio (K/D)",
+          value: m.kd.toFixed(2),
+          sub: `${m.kills.toLocaleString()} Total Eliminations`,
+          pct: Math.min(100, (m.kd / 7.0) * 100),
+          accent: "from-amber-400 to-amber-600",
+          textAccent: "text-amber-400",
+          delta: deltaSource ? formatDelta(m.kd, deltaSource.kd, "", 2) : formatDelta(0, null)
+        },
+        {
+          title: "Win Ratio (WWCD)",
+          value: `${m.winRate.toFixed(1)}%`,
+          sub: `${m.wins.toLocaleString()} Chicken Dinners`,
+          pct: Math.min(100, (m.winRate / 35) * 100),
+          accent: "from-cyan-400 to-cyan-600",
+          textAccent: "text-cyan-400",
+          delta: deltaSource ? formatDelta(m.winRate, deltaSource.winRate, "%", 1) : formatDelta(0, null)
+        },
+        {
+          title: "Average Damage",
+          value: Math.round(m.avgDamage).toLocaleString(),
+          sub: `${m.damage.toLocaleString()} Total Damage`,
+          pct: Math.min(100, (m.avgDamage / 1100) * 100),
+          accent: "from-amber-400 to-orange-500",
+          textAccent: "text-amber-400",
+          delta: deltaSource ? formatDelta(m.avgDamage, deltaSource.avgDamage, "", 0) : formatDelta(0, null)
+        },
+        {
+          title: "Top 10 Finish Rate",
+          value: `${m.top10Rate.toFixed(1)}%`,
+          sub: `${m.top10.toLocaleString()} Top 10 Finishes`,
+          pct: Math.min(100, m.top10Rate),
+          accent: "from-emerald-400 to-teal-500",
+          textAccent: "text-emerald-400",
+          delta: deltaSource ? formatDelta(m.top10Rate, deltaSource.top10Rate, "%", 1) : formatDelta(0, null)
+        },
+        {
+          title: "Headshot Accuracy",
+          value: `${m.hsRate.toFixed(1)}%`,
+          sub: `${m.headshots.toLocaleString()} Headshot Kills`,
+          pct: Math.min(100, (m.hsRate / 40) * 100),
+          accent: "from-cyan-400 to-blue-500",
+          textAccent: "text-cyan-400",
+          delta: deltaSource ? formatDelta(m.hsRate, deltaSource.hsRate, "%", 1) : formatDelta(0, null)
+        },
+        {
+          title: "Most Eliminations",
+          value: m.maxKills,
+          sub: "Single-Match Kill Record",
+          pct: Math.min(100, (m.maxKills / 25) * 100),
+          accent: "from-rose-400 to-amber-500",
+          textAccent: "text-rose-400",
+          delta: `<span class="text-slate-400 text-[11px]">Peak lobby dominance</span>`
+        }
       ];
 
-      const grid = document.getElementById("statsGrid");
-      grid.innerHTML = metrics.map(m => `
-        <div class="card">
-          <div class="label">${m.label}</div>
-          <div class="value">${m.value}</div>
-          <div class="sub">${m.sub}</div>
+      document.getElementById("kpiGrid").innerHTML = cards.map(c => `
+        <div class="glass-panel glass-panel-hover rounded-2xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">${c.title}</span>
+              ${c.delta}
+            </div>
+            <div class="mt-2.5 flex items-baseline justify-between">
+              <span class="font-display text-3xl sm:text-4xl font-bold tracking-tight ${c.textAccent}">${c.value}</span>
+              <span class="text-xs text-slate-400">${c.sub}</span>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="w-full h-1.5 bg-slate-800/90 rounded-full overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r ${c.accent} transition-all duration-500" style="width: ${c.pct.toFixed(1)}%"></div>
+            </div>
+          </div>
         </div>
       `).join("");
+
+      // Update Combat Efficiency Sidebar
+      const aggressionScore = Math.min(100, Math.round((m.kd / 6) * 55 + (m.avgDamage / 1000) * 45));
+      const survivalScore = Math.min(100, Math.round((m.winRate / 30) * 50 + (m.top10Rate / 85) * 50));
+      const precisionScore = Math.min(100, Math.round((m.hsRate / 32) * 100));
+      const overallRating = Math.round((aggressionScore + survivalScore + precisionScore) / 3);
+
+      const bars = [
+        { label: "Lethality & Aggression", score: aggressionScore, color: "bg-amber-400" },
+        { label: "Survival & Placement", score: survivalScore, color: "bg-cyan-400" },
+        { label: "Critical Precision", score: precisionScore, color: "bg-emerald-400" }
+      ];
+
+      document.getElementById("efficiencyBreakdown").innerHTML = `
+        <div class="p-3.5 rounded-xl bg-obsidian/70 border border-white/10 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Composite Rating</div>
+            <div class="text-xs text-slate-400 mt-0.5">${overallRating >= 80 ? "Tier-1 Esports Caliber" : overallRating >= 60 ? "Ace Division Vanguard" : "Tactical Contender"}</div>
+          </div>
+          <div class="font-display text-3xl font-bold text-amber-400">${overallRating}<span class="text-sm text-slate-500">/100</span></div>
+        </div>
+        ${bars.map(b => `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300 font-medium">${b.label}</span>
+              <span class="font-mono font-semibold text-white">${b.score}%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full ${b.color} rounded-full transition-all duration-500" style="width: ${b.score}%"></div>
+            </div>
+          </div>
+        `).join("")}
+      `;
     }
 
-    function openEditor() {
-      const mode = document.getElementById("modeSelect").value;
-      const s = playerData.modes[mode];
-      document.getElementById("inName").value = playerData.profile.name;
-      document.getElementById("inUid").value = playerData.profile.uid;
-      document.getElementById("inTier").value = playerData.profile.tier;
-      document.getElementById("inMatches").value = s.matches;
-      document.getElementById("inWins").value = s.wins;
-      document.getElementById("inTop10").value = s.top10;
-      document.getElementById("inKills").value = s.kills;
-      document.getElementById("inDamage").value = s.damage;
-      document.getElementById("inHeadshots").value = s.headshots;
-      document.getElementById("inMaxKills").value = s.maxKills;
-      document.getElementById("editorDialog").showModal();
+    function renderTrendChart() {
+      const mode = document.getElementById("modeFilter").value;
+      const modeRecords = appState.records
+        .filter(r => r.mode === mode)
+        .sort((a, b) => compareSeasonIds(a.seasonId, b.seasonId));
+
+      const labels = modeRecords.map(r => r.seasonId);
+      const kdSeries = modeRecords.map(r => Number(computeMetrics(r).kd.toFixed(2)));
+      const dmgSeries = modeRecords.map(r => Math.round(computeMetrics(r).avgDamage));
+
+      const ctx = document.getElementById("trendChart").getContext("2d");
+      if (trendChartInstance) {
+        trendChartInstance.destroy();
+      }
+
+      trendChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels.length ? labels : ["No Data"],
+          datasets: [
+            {
+              label: "F/D Ratio (K/D)",
+              data: kdSeries.length ? kdSeries : [0],
+              borderColor: "#f59e0b",
+              backgroundColor: "rgba(245, 158, 11, 0.14)",
+              borderWidth: 3,
+              pointBackgroundColor: "#f59e0b",
+              pointBorderColor: "#080b12",
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.35,
+              fill: true,
+              yAxisID: "yKd"
+            },
+            {
+              label: "Avg Damage",
+              data: dmgSeries.length ? dmgSeries : [0],
+              borderColor: "#06b6d4",
+              backgroundColor: "rgba(6, 182, 212, 0.08)",
+              borderWidth: 2.5,
+              borderDash: [5, 4],
+              pointBackgroundColor: "#06b6d4",
+              pointBorderColor: "#080b12",
+              pointBorderWidth: 2,
+              pointRadius: 4.5,
+              pointHoverRadius: 6.5,
+              tension: 0.35,
+              fill: false,
+              yAxisID: "yDmg"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "rgba(15, 23, 42, 0.95)",
+              titleColor: "#f8fafc",
+              bodyColor: "#cbd5e1",
+              borderColor: "rgba(245, 158, 11, 0.35)",
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 8
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255, 255, 255, 0.05)" },
+              ticks: { color: "#94a3b8", font: { family: "Rajdhani", weight: "600", size: 13 } }
+            },
+            yKd: {
+              type: "linear",
+              position: "left",
+              beginAtZero: true,
+              grid: { color: "rgba(255, 255, 255, 0.05)" },
+              ticks: { color: "#f59e0b", font: { size: 11 } },
+              title: { display: true, text: "F/D Ratio", color: "#f59e0b", font: { size: 11 } }
+            },
+            yDmg: {
+              type: "linear",
+              position: "right",
+              beginAtZero: true,
+              grid: { drawOnChartArea: false },
+              ticks: { color: "#06b6d4", font: { size: 11 } },
+              title: { display: true, text: "Avg Damage", color: "#06b6d4", font: { size: 11 } }
+            }
+          }
+        }
+      });
     }
 
-    document.getElementById("statsForm").addEventListener("submit", (e) => {
+    function sortTable(field) {
+      if (currentSort.field === field) {
+        currentSort.dir = currentSort.dir === "asc" ? "desc" : "asc";
+      } else {
+        currentSort.field = field;
+        currentSort.dir = "desc";
+      }
+      renderSeasonTable();
+    }
+
+    function renderSeasonTable() {
+      const mode = document.getElementById("modeFilter").value;
+      const activeSeason = document.getElementById("seasonFilter").value;
+      document.getElementById("tableModePill").textContent = mode;
+
+      // Clear sort indicators
+      ["seasonId", "tier", "matches", "wins", "winRate", "kills", "kd", "avgDamage", "hsRate"].forEach(f => {
+        const el = document.getElementById(`sort-${f}`);
+        if (el) el.textContent = currentSort.field === f ? (currentSort.dir === "asc" ? "↑" : "↓") : "";
+      });
+
+      const indexedRecords = appState.records
+        .map((rec, originalIndex) => ({ rec, originalIndex, m: computeMetrics(rec) }))
+        .filter(item => item.rec.mode === mode);
+
+      indexedRecords.sort((a, b) => {
+        const dir = currentSort.dir === "asc" ? 1 : -1;
+        const f = currentSort.field;
+        if (f === "seasonId") return compareSeasonIds(a.rec.seasonId, b.rec.seasonId) * dir;
+        if (f === "tier") return a.rec.tier.localeCompare(b.rec.tier) * dir;
+        return ((a.m[f] ?? 0) - (b.m[f] ?? 0)) * dir;
+      });
+
+      const tbody = document.getElementById("seasonTableBody");
+      if (indexedRecords.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="py-10 px-4 text-center text-slate-400">
+              No season records found for <span class="text-amber-400 font-semibold">${mode}</span>. Click <span class="text-white font-semibold">+ Add / Scan Season</span> to log your stats.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = indexedRecords.map(({ rec, originalIndex, m }) => {
+        const isSelected = activeSeason === rec.seasonId;
+        const rowHighlight = isSelected
+          ? "bg-amber-500/15 border-l-4 border-l-amber-400"
+          : "hover:bg-white/[0.04]";
+
+        return `
+          <tr onclick="selectSeasonRow('${rec.seasonId}')" class="cursor-pointer transition ${rowHighlight}">
+            <td class="py-3.5 px-4 font-display font-bold text-base tracking-wide text-white">
+              ${rec.seasonId}
+              ${isSelected ? '<span class="ml-1.5 text-[10px] uppercase px-1.5 py-0.5 rounded bg-amber-400 text-black font-sans font-bold">Active</span>' : ''}
+            </td>
+            <td class="py-3.5 px-4">${getTierBadgeHtml(rec.tier)}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-slate-300">${m.matches}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-slate-300">${m.wins}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-cyan-300 font-semibold">${m.winRate.toFixed(1)}%</td>
+            <td class="py-3.5 px-4 text-right font-mono text-slate-200">${m.kills.toLocaleString()}</td>
+            <td class="py-3.5 px-4 text-right font-mono font-bold text-amber-400">${m.kd.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-slate-200">${Math.round(m.avgDamage)}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-slate-300">${m.hsRate.toFixed(1)}%</td>
+            <td class="py-3.5 px-4 text-right" onclick="event.stopPropagation()">
+              <div class="inline-flex items-center gap-1.5">
+                <button onclick="openEditSeason(${originalIndex})" class="p-1.5 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 transition cursor-pointer" title="Edit Season">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button onclick="requestDeleteSeason(${originalIndex})" class="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition cursor-pointer" title="Delete Season">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function selectSeasonRow(seasonId) {
+      const select = document.getElementById("seasonFilter");
+      select.value = select.value === seasonId ? "ALL" : seasonId;
+      renderAll();
+    }
+
+    // =========================================================================
+    // 5. MODAL CONTROLLERS (Add/Edit Season, Profile, Delete, Backup)
+    // =========================================================================
+    function openSeasonModal() {
+      const currentMode = document.getElementById("modeFilter").value;
+      document.getElementById("seasonModalTitle").textContent = "Add / Scan Season Telemetry";
+      document.getElementById("editOriginalKey").value = "";
+      document.getElementById("fSeasonId").value = "C11S32";
+      document.getElementById("fMode").value = currentMode;
+      document.getElementById("fTier").value = "Ace Dominator";
+      document.getElementById("fMatches").value = "";
+      document.getElementById("fWins").value = "";
+      document.getElementById("fTop10").value = "";
+      document.getElementById("fKills").value = "";
+      document.getElementById("fDamage").value = "";
+      document.getElementById("fHeadshots").value = "";
+      document.getElementById("fMaxKills").value = "";
+      document.getElementById("rawOcrPreview").classList.add("hidden");
+      document.getElementById("ocrProgressWrap").classList.add("hidden");
+      document.getElementById("seasonModal").showModal();
+    }
+
+    function openEditSeason(index) {
+      const rec = appState.records[index];
+      if (!rec) return;
+      document.getElementById("seasonModalTitle").textContent = `Edit ${rec.seasonId} (${rec.mode})`;
+      document.getElementById("editOriginalKey").value = String(index);
+      document.getElementById("fSeasonId").value = rec.seasonId;
+      document.getElementById("fMode").value = rec.mode;
+      document.getElementById("fTier").value = rec.tier;
+      document.getElementById("fMatches").value = rec.matches;
+      document.getElementById("fWins").value = rec.wins;
+      document.getElementById("fTop10").value = rec.top10;
+      document.getElementById("fKills").value = rec.kills;
+      document.getElementById("fDamage").value = rec.damage;
+      document.getElementById("fHeadshots").value = rec.headshots;
+      document.getElementById("fMaxKills").value = rec.maxKills;
+      document.getElementById("rawOcrPreview").classList.add("hidden");
+      document.getElementById("ocrProgressWrap").classList.add("hidden");
+      document.getElementById("seasonModal").showModal();
+    }
+
+    function closeSeasonModal() {
+      document.getElementById("seasonModal").close();
+    }
+
+    document.getElementById("seasonForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      const mode = document.getElementById("modeSelect").value;
-      playerData.profile = {
-        name: document.getElementById("inName").value,
-        uid: document.getElementById("inUid").value,
-        tier: document.getElementById("inTier").value
+      const editIdxStr = document.getElementById("editOriginalKey").value;
+      const newRecord = {
+        seasonId: document.getElementById("fSeasonId").value.trim().toUpperCase(),
+        mode: document.getElementById("fMode").value,
+        tier: document.getElementById("fTier").value,
+        matches: Number(document.getElementById("fMatches").value),
+        wins: Number(document.getElementById("fWins").value),
+        top10: Number(document.getElementById("fTop10").value),
+        kills: Number(document.getElementById("fKills").value),
+        damage: Number(document.getElementById("fDamage").value),
+        headshots: Number(document.getElementById("fHeadshots").value),
+        maxKills: Number(document.getElementById("fMaxKills").value)
       };
-      playerData.modes[mode] = {
-        matches: Number(document.getElementById("inMatches").value),
-        wins: Number(document.getElementById("inWins").value),
-        top10: Number(document.getElementById("inTop10").value),
-        kills: Number(document.getElementById("inKills").value),
-        damage: Number(document.getElementById("inDamage").value),
-        headshots: Number(document.getElementById("inHeadshots").value),
-        maxKills: Number(document.getElementById("inMaxKills").value)
-      };
-      localStorage.setItem("pubgm_stats", JSON.stringify(playerData));
-      document.getElementById("editorDialog").close();
-      renderStats();
+
+      if (editIdxStr !== "") {
+        appState.records[Number(editIdxStr)] = newRecord;
+        showToast(`Updated ${newRecord.seasonId} (${newRecord.mode})`, "success");
+      } else {
+        // Check if same Season + Mode already exists; overwrite if so
+        const existingIdx = appState.records.findIndex(
+          r => r.seasonId === newRecord.seasonId && r.mode === newRecord.mode
+        );
+        if (existingIdx !== -1) {
+          appState.records[existingIdx] = newRecord;
+          showToast(`Updated existing ${newRecord.seasonId} (${newRecord.mode}) record`, "success");
+        } else {
+          appState.records.push(newRecord);
+          showToast(`Added ${newRecord.seasonId} (${newRecord.mode}) telemetry`, "success");
+        }
+      }
+
+      saveState();
+      document.getElementById("modeFilter").value = newRecord.mode;
+      document.getElementById("seasonFilter").value = newRecord.seasonId;
+      closeSeasonModal();
+      renderAll();
     });
 
-    renderStats();
+    // Delete Workflow
+    function requestDeleteSeason(index) {
+      const rec = appState.records[index];
+      if (!rec) return;
+      pendingDeleteIndex = index;
+      document.getElementById("deleteConfirmText").textContent =
+        `Remove ${rec.seasonId} (${rec.mode} • ${rec.tier}) from your stats database?`;
+      document.getElementById("deleteConfirmModal").showModal();
+    }
+
+    document.getElementById("confirmDeleteBtn").addEventListener("click", () => {
+      if (pendingDeleteIndex !== null) {
+        const removed = appState.records.splice(pendingDeleteIndex, 1)[0];
+        pendingDeleteIndex = null;
+        saveState();
+        document.getElementById("deleteConfirmModal").close();
+        document.getElementById("seasonFilter").value = "ALL";
+        renderAll();
+        showToast(`Deleted ${removed.seasonId} (${removed.mode})`, "info");
+      }
+    });
+
+    // Profile Modal
+    function openProfileModal() {
+      document.getElementById("pName").value = appState.profile.name;
+      document.getElementById("pUid").value = appState.profile.uid;
+      document.getElementById("pServer").value = appState.profile.server;
+      document.getElementById("pHighestTier").value = appState.profile.highestTier;
+      document.getElementById("profileModal").showModal();
+    }
+
+    document.getElementById("profileForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      appState.profile = {
+        name: document.getElementById("pName").value.trim(),
+        uid: document.getElementById("pUid").value.trim(),
+        server: document.getElementById("pServer").value,
+        highestTier: document.getElementById("pHighestTier").value
+      };
+      saveState();
+      document.getElementById("profileModal").close();
+      renderAll();
+      showToast("Operative profile updated", "success");
+    });
+
+    // JSON Backup Export / Import & Sample Reset
+    function exportJsonBackup() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `pubgm-telemetry-${appState.profile.name.toLowerCase()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("JSON telemetry backup downloaded", "success");
+    }
+
+    document.getElementById("jsonImportInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (!imported.profile || !Array.isArray(imported.records)) {
+            throw new Error("Invalid backup structure");
+          }
+          appState = imported;
+          saveState();
+          document.getElementById("seasonFilter").value = "ALL";
+          renderAll();
+          showToast(`Imported ${appState.records.length} season records`, "success");
+        } catch (err) {
+          showToast("Invalid JSON backup file", "error");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    function resetDemoData() {
+      appState = structuredClone(DEFAULT_STATE);
+      saveState();
+      document.getElementById("seasonFilter").value = "ALL";
+      renderAll();
+      showToast("Restored default multi-season sample data", "info");
+    }
+
+    // =========================================================================
+    // 6. TESSERACT.JS SCREENSHOT OCR SCANNER + IMAGE PREPROCESSING
+    // =========================================================================
+    function preprocessScreenshot(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const scale = 1.6;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imgData.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            const boosted = lum > 135 ? 255 : lum * 0.35;
+            d[i] = d[i + 1] = d[i + 2] = boosted;
+          }
+          ctx.putImageData(imgData, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function parsePubgMobileOcr(rawText) {
+      const clean = rawText.replace(/,/g, "");
+      const findNumber = (regexList) => {
+        for (const rx of regexList) {
+          const m = clean.match(rx);
+          if (m && m[1]) return parseInt(m[1], 10);
+        }
+        return null;
+      };
+
+      const seasonMatch = clean.match(/\b(C\d{1,2}S\d{1,2})\b/i);
+
+      return {
+        seasonId: seasonMatch ? seasonMatch[1].toUpperCase() : null,
+        matches: findNumber([/(?:Played|Matches)[^\d]{0,18}(\d+)/i, /(\d+)\s*(?:Played|Matches)/i]),
+        wins: findNumber([/(?:Wins|Chicken\s*Dinners?)[^\d]{0,18}(\d+)/i, /(\d+)\s*Wins/i]),
+        top10: findNumber([/Top\s*10[^\d]{0,18}(\d+)/i, /(\d+)\s*Top\s*10/i]),
+        kills: findNumber([/(?:Eliminations|Finishes|Kills)[^\d]{0,18}(\d+)/i, /(\d+)\s*(?:Eliminations|Finishes|Kills)/i]),
+        damage: findNumber([/(?:Total\s*Damage|Damage)[^\d]{0,18}(\d{3,})/i]),
+        headshots: findNumber([/Headshots?[^\d]{0,18}(\d+)/i]),
+        maxKills: findNumber([/(?:Most\s*Eliminations|Highest\s*Eliminations|Highest\s*Kills)[^\d]{0,18}(\d+)/i])
+      };
+    }
+
+    document.getElementById("ocrFileInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const wrap = document.getElementById("ocrProgressWrap");
+      const statusLbl = document.getElementById("ocrStatusLabel");
+      const pctLbl = document.getElementById("ocrPercentLabel");
+      const bar = document.getElementById("ocrProgressBar");
+
+      wrap.classList.remove("hidden");
+      statusLbl.textContent = "Enhancing contrast...";
+      pctLbl.textContent = "10%";
+      bar.style.width = "10%";
+
+      try {
+        const processedUrl = await preprocessScreenshot(file);
+        const result = await Tesseract.recognize(processedUrl, "eng", {
+          logger: (info) => {
+            if (info.status === "recognizing text") {
+              const p = Math.round(info.progress * 100);
+              statusLbl.textContent = "Scanning telemetry digits...";
+              pctLbl.textContent = `${p}%`;
+              bar.style.width = `${p}%`;
+            }
+          }
+        });
+
+        const parsed = parsePubgMobileOcr(result.data.text);
+        if (parsed.seasonId) document.getElementById("fSeasonId").value = parsed.seasonId;
+        if (parsed.matches !== null) document.getElementById("fMatches").value = parsed.matches;
+        if (parsed.wins !== null) document.getElementById("fWins").value = parsed.wins;
+        if (parsed.top10 !== null) document.getElementById("fTop10").value = parsed.top10;
+        if (parsed.kills !== null) document.getElementById("fKills").value = parsed.kills;
+        if (parsed.damage !== null) document.getElementById("fDamage").value = parsed.damage;
+        if (parsed.headshots !== null) document.getElementById("fHeadshots").value = parsed.headshots;
+        if (parsed.maxKills !== null) document.getElementById("fMaxKills").value = parsed.maxKills;
+
+        document.getElementById("rawOcrPreview").classList.remove("hidden");
+        document.getElementById("rawOcrOutputText").textContent = result.data.text.trim();
+        statusLbl.textContent = "Scan complete — verify fields below";
+        showToast("Screenshot scanned! Verify fields and click Save.", "success");
+      } catch (err) {
+        console.error(err);
+        statusLbl.textContent = "OCR failed — please try a clearer crop";
+        showToast("Could not parse screenshot text", "error");
+      }
+      e.target.value = "";
+    });
+
+    // Initialize Dashboard on Load
+    window.addEventListener("DOMContentLoaded", renderAll);
   </script>
 </body>
 </html>
