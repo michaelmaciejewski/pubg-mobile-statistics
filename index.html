@@ -146,14 +146,47 @@
       <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         
         <!-- Dynamic Account Identity -->
-        <div class="flex items-center gap-4">
-          <div class="relative shrink-0">
-            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-amber-500/60 flex items-center justify-center shadow-lg shadow-amber-500/10">
-              <svg class="w-9 h-9 sm:w-11 sm:h-11 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
+        <div class="flex items-center gap-4 sm:gap-5">
+          <div class="relative shrink-0 group">
+            <!-- Tactical Esports Avatar Frame -->
+            <div onclick="openAvatarPreviewModal()" title="Click to preview full Operative Avatar" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-obsidian border-2 border-amber-500/75 group-hover:border-cyan-400 flex items-center justify-center shadow-xl shadow-amber-500/15 overflow-hidden cursor-pointer transition-all duration-300 relative">
+              <!-- Default Tactical Operator + Companion Emblem -->
+              <div id="defaultAvatarEmblem" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-slate-800/90 to-obsidian p-2 text-amber-400">
+                <svg class="w-11 h-11 sm:w-13 sm:h-13 drop-shadow" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+                  <path d="M32 6L52 15V31C52 44.5 43.4 55.2 32 59C20.6 55.2 12 44.5 12 31V15L32 6Z" stroke-width="2.5" fill="rgba(245, 158, 11, 0.08)"/>
+                  <circle cx="32" cy="25" r="7.5" stroke-width="2.3"/>
+                  <path d="M20 45C20 38.5 25.4 34 32 34C38.6 34 44 38.5 44 45" stroke-width="2.3" stroke-linecap="round"/>
+                  <path d="M25 23H39" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+                <span class="text-[8px] font-display font-bold uppercase tracking-widest text-cyan-300/90 mt-0.5">OPERATIVE</span>
+              </div>
+
+              <!-- Uploaded Custom Character Screenshot -->
+              <img id="customAvatarImg" src="" alt="Operative Profile Avatar" class="hidden w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
+
+              <!-- Subtle Hover Inspect Overlay -->
+              <div class="absolute inset-0 bg-obsidian/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-white bg-black/70 px-2 py-0.5 rounded border border-white/15">Expand</span>
+              </div>
             </div>
-            <span id="accountBadgePill" class="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-cyan-500 text-black shadow">
+
+            <!-- Online / Active Status Dot -->
+            <span title="Operative Online • Active S33" class="absolute -top-1 -left-1 flex h-3.5 w-3.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-obsidian"></span>
+            </span>
+
+            <!-- Upload / Change Avatar Camera Trigger -->
+            <label title="Upload / Change Profile Picture" class="absolute -bottom-2 -left-2 w-7 h-7 rounded-lg bg-slate-900 hover:bg-amber-500 text-amber-400 hover:text-black border border-amber-500/50 flex items-center justify-center shadow-lg cursor-pointer transition z-10">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <input type="file" id="avatarUploadInput" accept="image/*" class="hidden" />
+            </label>
+
+            <!-- Account Role Badge (MAIN / ALT / ALL) -->
+            <span id="accountBadgePill" class="absolute -bottom-2 -right-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-cyan-500 text-black shadow">
               MAIN
             </span>
           </div>
@@ -665,6 +698,45 @@
     </div>
   </dialog>
 
+  <!-- MODAL 4: OPERATIVE PROFILE AVATAR LIGHTBOX & MANAGER -->
+  <dialog id="avatarPreviewModal" class="glass-panel rounded-2xl p-0 max-w-md w-11/12 text-slate-100 border border-amber-500/30 shadow-2xl">
+    <div class="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-obsidian/85 rounded-t-2xl">
+      <div>
+        <h3 id="avatarModalTitle" class="font-display text-lg font-bold uppercase tracking-wider text-amber-400">Operative Loadout Portrait</h3>
+        <p id="avatarModalSubtitle" class="text-xs text-slate-400">Sʟ×Boomerang • UID: 51887738551</p>
+      </div>
+      <button onclick="document.getElementById('avatarPreviewModal').close()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="p-5 space-y-4">
+      <div class="w-full aspect-[3/4] max-h-[60vh] rounded-xl bg-obsidian border border-white/10 overflow-hidden flex items-center justify-center relative">
+        <div id="modalDefaultAvatarEmblem" class="flex flex-col items-center justify-center text-amber-400 p-6 text-center">
+          <svg class="w-24 h-24 mb-3" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+            <path d="M32 6L52 15V31C52 44.5 43.4 55.2 32 59C20.6 55.2 12 44.5 12 31V15L32 6Z" stroke-width="2.2" fill="rgba(245, 158, 11, 0.08)"/>
+            <circle cx="32" cy="25" r="7.5" stroke-width="2.2"/>
+            <path d="M20 45C20 38.5 25.4 34 32 34C38.6 34 44 38.5 44 45" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M25 23H39" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <p class="font-display text-base font-bold uppercase tracking-wider text-white">No Custom Avatar Uploaded</p>
+          <p class="text-xs text-slate-400 mt-1">Upload your character & companion lobby screenshot below.</p>
+        </div>
+        <img id="modalCustomAvatarImg" src="" alt="Full Operative Portrait" class="hidden w-full h-full object-contain bg-obsidian" />
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <label class="flex-1 text-center px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-xs sm:text-sm cursor-pointer shadow-lg shadow-amber-500/20 transition">
+          Upload / Replace Photo
+          <input type="file" id="modalAvatarUploadInput" accept="image/*" class="hidden" />
+        </label>
+        <button id="removeAvatarBtn" onclick="removeCustomAvatar()" class="hidden px-3.5 py-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-semibold transition cursor-pointer">
+          Reset Default
+        </button>
+      </div>
+    </div>
+  </dialog>
+
   <script>
     // =========================================================================
     // 1. MASTER EXCEL DATASET (ALL 41 ROWS FROM PUBG Master Stats.xlsx)
@@ -718,6 +790,7 @@
     // =========================================================================
     // 2. APPLICATION STATE & LOCALSTORAGE
     // =========================================================================
+    const AVATAR_STORAGE_KEY = "pubgm_avatar";
     let records = loadRecords();
     let activeAccount = "Sʟ×Boomerang";
     let activeSegment = "Ranked";
@@ -929,11 +1002,109 @@
     // =========================================================================
     function renderAll() {
       updatePillStyles();
+      renderAvatar();
       renderHeaderIdentity();
       renderKpiHeroGrid();
       renderCharts();
       renderSeasonTable();
     }
+
+    function renderAvatar() {
+      const savedAvatar = localStorage.getItem(AVATAR_STORAGE_KEY);
+      const headerImg = document.getElementById("customAvatarImg");
+      const headerDefault = document.getElementById("defaultAvatarEmblem");
+      const modalImg = document.getElementById("modalCustomAvatarImg");
+      const modalDefault = document.getElementById("modalDefaultAvatarEmblem");
+      const removeBtn = document.getElementById("removeAvatarBtn");
+
+      if (savedAvatar) {
+        headerImg.src = savedAvatar;
+        headerImg.classList.remove("hidden");
+        headerDefault.classList.add("hidden");
+
+        modalImg.src = savedAvatar;
+        modalImg.classList.remove("hidden");
+        modalDefault.classList.add("hidden");
+        removeBtn.classList.remove("hidden");
+      } else {
+        headerImg.src = "";
+        headerImg.classList.add("hidden");
+        headerDefault.classList.remove("hidden");
+
+        modalImg.src = "";
+        modalImg.classList.add("hidden");
+        modalDefault.classList.remove("hidden");
+        removeBtn.classList.add("hidden");
+      }
+    }
+
+    function handleAvatarFileSelect(file) {
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        showToast("Please select a valid image file", "error");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          // Compress/resize cleanly if larger than 900px so it fits reliably in localStorage
+          const img = new Image();
+          img.onload = () => {
+            const maxDim = 900;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+            localStorage.setItem(AVATAR_STORAGE_KEY, dataUrl);
+            renderAvatar();
+            showToast("Operative profile picture saved!", "success");
+          };
+          img.src = evt.target.result;
+        } catch (err) {
+          console.error(err);
+          showToast("Image too large for browser storage", "error");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openAvatarPreviewModal() {
+      const name = document.getElementById("profileName").textContent;
+      const uid = document.getElementById("profileUid").textContent;
+      document.getElementById("avatarModalTitle").textContent = `${name} • Portrait`;
+      document.getElementById("avatarModalSubtitle").textContent = `UID: ${uid} • Tactical Loadout`;
+      renderAvatar();
+      document.getElementById("avatarPreviewModal").showModal();
+    }
+
+    function removeCustomAvatar() {
+      localStorage.removeItem(AVATAR_STORAGE_KEY);
+      renderAvatar();
+      showToast("Restored default tactical emblem", "info");
+    }
+
+    document.getElementById("avatarUploadInput").addEventListener("change", (e) => {
+      handleAvatarFileSelect(e.target.files[0]);
+      e.target.value = "";
+    });
+
+    document.getElementById("modalAvatarUploadInput").addEventListener("change", (e) => {
+      handleAvatarFileSelect(e.target.files[0]);
+      e.target.value = "";
+    });
 
     function renderHeaderIdentity() {
       const nameEl = document.getElementById("profileName");
