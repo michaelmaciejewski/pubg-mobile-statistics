@@ -1,0 +1,17 @@
+{
+  "name": "PUBGM Master Telemetry",
+  "short_name": "PUBGM Stats",
+  "description": "Personal PUBG Mobile season stats, synced with Google Sheets.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090c10",
+  "theme_color": "#090c10",
+  "icons": [
+    { "src": "icons/icon-192-v1.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-v1.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512-v1.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
