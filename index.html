@@ -53,14 +53,12 @@ input,select{color-scheme:dark}
   </div>
   <div class="flex items-center gap-1.5">
    <button onclick="openPalette()" class="btn" title="Search (Ctrl/Cmd+K)">Search <kbd class="hidden sm:inline">Ctrl K</kbd></button>
-   <button onclick="exportCsv()" class="btn">CSV</button>
-   <button onclick="exportJson()" class="btn">Export</button>
-   <label class="btn cursor-pointer">Import<input type="file" id="importIn" accept=".json" class="hidden"></label>
-   <button onclick="$('resetDlg').showModal()" class="btn !text-rose-300 !border-rose-500/30">Reset</button>
+   <button type="button" onclick="$('dataDlg').showModal()" class="btn flex items-center gap-1.5" title="Save and backup"><span id="dataDot" class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>Data</button>
    <button onclick="openWizard()" class="px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold text-sm">+ Add</button>
   </div>
  </div>
 </nav>
+<div id="backupBar" class="hidden bg-amber-500/10 border-b border-amber-500/30 text-amber-200 text-xs"><div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2"><span id="backupMsg"></span><span class="flex gap-2"><button type="button" class="btn" onclick="downloadBackup()">Download backup</button><button type="button" class="btn" onclick="barHidden=true;drawData()">Dismiss</button></span></div></div>
 <style>.btn{padding:.5rem .7rem;border-radius:.5rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:.75rem;font-weight:500;color:#e2e8f0}.btn:hover{background:rgba(255,255,255,.1)}.inp{width:100%;background:#090c10;border:1px solid rgba(255,255,255,.15);border-radius:.5rem;padding:.5rem .7rem;font-size:.85rem;color:#fff}.inp:focus{outline:none;border-color:#f59e0b}</style>
 
 <main class="max-w-7xl mx-auto px-4 pt-6 space-y-6">
@@ -156,6 +154,10 @@ input,select{color-scheme:dark}
 
 <dialog id="inspDlg" class="glass rounded-2xl p-0 max-w-3xl w-11/12"><div id="inspHdr" class="p-5 border-b border-white/10 flex justify-between gap-3 bg-obsidian/80 rounded-t-2xl" style="background-size:cover;background-position:center"><div><div id="inspHead" class="font-display text-2xl font-bold text-amber-400"></div><p id="inspSub" class="text-xs text-slate-400 mt-1"></p></div><div class="flex gap-2 shrink-0"><button id="inspWrap" class="btn !text-amber-300">Wrapped</button><button id="inspShare" class="btn !text-cyan-300">Share card</button><button id="inspEdit" class="btn">Edit</button><button id="inspDel" class="btn !text-rose-300">Delete</button><button onclick="$('inspDlg').close()" class="btn">&times;</button></div></div><div id="inspBody" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto num"></div></dialog>
 
+<dialog id="dataDlg" class="glass rounded-2xl p-0 max-w-lg w-11/12"><div class="p-5 border-b border-white/10 flex justify-between gap-3 bg-obsidian/80"><div><h3 class="h2 text-xl text-amber-400">Save &amp; Backup</h3><p class="text-xs text-slate-400">Where your data lives and how to keep it safe.</p></div><button type="button" onclick="$('dataDlg').close()" class="btn">&times;</button></div><div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto"><div id="dataRows" class="divide-y divide-white/5"></div><p class="text-xs text-slate-400">Your data is stored in this browser on this device. Clearing site data, a private window, or switching browser or device starts empty. A spreadsheet sync, a backup file or a linked save file protects you from all of those, and a Google Sheet also works across devices.</p><div><div class="lbl">Spreadsheet sync (recommended)</div><div id="sheetSec" class="space-y-2"></div></div><div><div class="lbl">Backup file, JSON (Chrome or Edge on a computer)</div><div id="fileBtns" class="flex flex-wrap gap-2"></div></div><div><div class="lbl">Backup</div><div class="flex flex-wrap gap-2"><button type="button" class="btn !text-emerald-300 !border-emerald-500/30" onclick="downloadBackup()">Download backup</button><label class="btn cursor-pointer">Restore from backup<input type="file" id="importIn" accept=".json" class="hidden"></label><button type="button" class="btn" onclick="exportCsv()">Export CSV</button></div></div><div class="pt-3 border-t border-white/10"><button type="button" class="btn !text-rose-300 !border-rose-500/30" onclick="$('dataDlg').close();$('resetDlg').showModal()">Reset to source data</button></div></div></dialog>
+
+<dialog id="gsDlg" class="glass rounded-2xl p-0 max-w-2xl w-11/12"><div class="p-5 border-b border-white/10 flex justify-between gap-3 bg-obsidian/80"><div><h3 class="h2 text-xl text-amber-400">Connect a Google Sheet</h3><p class="text-xs text-slate-400">A one-time setup, about 3 minutes. The script lives in your own Google account.</p></div><button type="button" onclick="$('gsDlg').close()" class="btn">&times;</button></div><div class="p-5 space-y-4 max-h-[78vh] overflow-y-auto text-sm text-slate-300"><ol class="list-decimal pl-5 space-y-1.5"><li>Open your Google Sheet, then choose <b>Extensions &rarr; Apps Script</b>.</li><li>Delete any code there, paste the script below, and save.</li><li>Choose <b>Deploy &rarr; New deployment</b>, pick the type <b>Web app</b>, set <b>Execute as: Me</b> and <b>Who has access: Anyone</b>, then deploy and approve the permissions.</li><li>Copy the <b>Web app URL</b> (it ends in /exec), paste it below and press Connect.</li></ol><div><div class="lbl">Token (a private password, already put into the script)</div><input id="gsTok" class="inp font-mono" oninput="gsRefresh()" autocomplete="off"></div><div><div class="flex items-center justify-between"><div class="lbl">Script</div><button type="button" class="btn" onclick="gsCopy()">Copy script</button></div><textarea id="gsCode" readonly rows="8" class="inp font-mono !text-[11px]"></textarea></div><div><div class="lbl">Web app URL</div><input id="gsUrl" class="inp" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></div><p class="text-xs text-slate-500">The sheet is open to anyone who has both the URL and the token, so keep them private. On every save the dashboard updates only the rows that changed and adds new seasons in the next empty row. Formula columns such as K/D Ratio, Win Ratio, Top 10 Rate and AVG Damage are never overwritten, and a record you delete in the dashboard is not deleted from the sheet. If you change the token, copy the script again and redeploy.</p><div class="flex flex-wrap justify-between gap-2 pt-3 border-t border-white/10"><button type="button" id="gsDisc" onclick="gsDisconnect()" class="btn !text-rose-300 !border-rose-500/30 hidden">Disconnect</button><span class="flex gap-2 ml-auto"><button type="button" onclick="$('gsDlg').close()" class="btn">Cancel</button><button type="button" onclick="gsConnect()" class="px-5 py-2 rounded-lg bg-amber-500 text-black font-semibold text-sm">Connect &amp; test</button></span></div></div></dialog>
+
 <dialog id="cmdDlg" class="glass rounded-2xl p-0 max-w-xl w-11/12" style="margin:10vh auto auto" aria-label="Command palette"><div class="p-3 border-b border-white/10"><input id="cmdIn" class="inp !text-base" placeholder="Search seasons, filters, actions... try S28, alt, wrapped" autocomplete="off" aria-label="Search commands"></div><div id="cmdList" role="listbox" class="max-h-[50vh] overflow-y-auto p-2"></div><div class="px-3 py-2 border-t border-white/10 text-[11px] text-slate-500 flex gap-4"><span>&uarr;&darr; move</span><span>Enter select</span><span>Esc close</span></div></dialog>
 
 <dialog id="wrapDlg" aria-label="Season Wrapped" style="width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:hidden;background:#090c10"><button type="button" onclick="$('wrapDlg').close()" aria-label="Close Season Wrapped" class="btn fixed top-8 right-4 z-10">&times; Close</button><button type="button" id="wPlayBtn" onclick="wToggle()" class="btn fixed top-8 left-4 z-10 !text-amber-300">&#9654; Play story</button><div id="wProg" class="fixed top-0 left-0 right-0 z-10 flex gap-1 p-2" style="--dur:5.5s"></div><div id="wDots" class="fixed right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-2"></div><div id="wrapScroll" tabindex="0" class="overflow-y-auto snap-y snap-mandatory outline-none" style="height:100dvh;scroll-behavior:smooth"></div></dialog>
@@ -167,7 +169,7 @@ input,select{color-scheme:dark}
 <dialog id="formDlg" class="glass rounded-2xl p-0 max-w-3xl w-11/12"><div class="p-5 border-b border-white/10 flex justify-between bg-obsidian/80"><h3 id="formTitle" class="h2 text-xl text-amber-400"></h3><button onclick="$('formDlg').close()" class="btn">&times;</button></div>
 <form id="form" class="p-5 space-y-4 max-h-[80vh] overflow-y-auto"><input type="hidden" id="f_id"><div id="formFields" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div><div class="flex justify-end gap-2 pt-3 border-t border-white/10"><button type="button" onclick="$('formDlg').close()" class="btn">Cancel</button><button class="px-5 py-2 rounded-lg bg-amber-500 text-black font-semibold text-sm">Save record</button></div></form></dialog>
 
-<dialog id="resetDlg" class="glass rounded-2xl p-5 max-w-sm w-11/12 border-rose-500/30"><h3 class="h2 text-lg text-rose-400">Reset to source data?</h3><p class="text-sm text-slate-300 mt-2">Restores the 41 rows from PUBG Master Stats.xlsx and discards your edits. Your avatar and goals are kept.</p><div class="flex justify-end gap-2 mt-5"><button onclick="$('resetDlg').close()" class="btn">Cancel</button><button onclick="doReset()" class="px-3.5 py-2 rounded-lg bg-rose-600 text-white text-xs font-semibold">Restore</button></div></dialog>
+<dialog id="resetDlg" class="glass rounded-2xl p-5 max-w-sm w-11/12 border-rose-500/30"><h3 class="h2 text-lg text-rose-400">Reset to source data?</h3><p class="text-sm text-slate-300 mt-2">Restores the original rows from your spreadsheet and discards your edits. Your avatar is kept. Download a backup first if you might want them back.</p><div class="flex justify-end gap-2 mt-5"><button onclick="$('resetDlg').close()" class="btn">Cancel</button><button onclick="doReset()" class="px-3.5 py-2 rounded-lg bg-rose-600 text-white text-xs font-semibold">Restore</button></div></dialog>
 
 <dialog id="avDlg" class="glass rounded-2xl p-0 max-w-md w-11/12"><div class="p-4 border-b border-white/10 flex justify-between bg-obsidian/80"><h3 class="h2 text-lg text-amber-400">Operative Portrait</h3><button onclick="$('avDlg').close()" class="btn">&times;</button></div><div class="p-5 space-y-4"><img id="avBig" alt="Operative portrait" class="w-full max-h-[60vh] object-contain rounded-xl bg-obsidian border border-white/10"><div class="flex gap-2"><label class="flex-1 text-center px-4 py-2 rounded-lg bg-amber-500 text-black font-semibold text-sm cursor-pointer">Upload / replace<input type="file" id="avIn" accept="image/*" class="hidden"></label><button onclick="resetAvatar()" class="btn">Restore default</button></div></div></dialog>
 
@@ -183,7 +185,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const clone=o=>JSON.parse(JSON.stringify(o));
 function load(){try{const p=JSON.parse(store.get(SK));if(Array.isArray(p)&&p.length)return p}catch(e){}return clone(DATA)}
 let R=load(),acc=MAIN,seg="Ranked",rate="ALL",foc=null,mode="combat",sort={f:"season",d:-1},trend=null,radar=null,AUD=[];
-const save=()=>store.set(SK,JSON.stringify(R));
+
 
 function toast(msg,t="info"){const c={success:"text-emerald-300 border-emerald-500/40",error:"text-rose-300 border-rose-500/40",info:"text-amber-300 border-amber-500/40"}[t];const e=document.createElement("div");e.className="pointer-events-auto px-4 py-3 rounded-xl border bg-slate-900/95 shadow-2xl text-sm "+c;e.textContent=msg;$("toasts").appendChild(e);setTimeout(()=>e.remove(),3200)}
 function copyUid(){const u=$("pUid").textContent;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast("Copied UID "+u,"success"),()=>toast("Copy blocked by browser","error"))}
@@ -358,7 +360,7 @@ const SECTIONS=[["Pace projector","pace"],["Milestones","miles"],["Rank journey"
 function cmdAll(q){const tok=q.toLowerCase().split(/\s+/).filter(Boolean),L=[],add=(g,l,fn)=>L.push({g,l,fn});
  [[MAIN,"Main"],[ALT,"Alt"],["ALL","All accounts"]].forEach(([v,n])=>add("Filter","Account: "+n,()=>{acc=v;foc=null;renderAll()}));
  [["Ranked","Ranked"],["Unranked","Unranked"],["ALL","All segments"]].forEach(([v,n])=>add("Filter","Segment: "+n,()=>{seg=v;foc=null;renderAll()}));
- add("Action","Add season entry",()=>openForm());add("Action","Export JSON backup",exportJson);add("Action","Export CSV",exportCsv);add("Action","Reset season foc",()=>{foc=null;renderAll()});
+ add("Action","Add season entry",()=>openForm());add("Action","Export JSON backup",exportJson);add("Action","Export CSV",exportCsv);add("Action","Save and backup",()=>$("dataDlg").showModal());add("Action","Reset season foc",()=>{foc=null;renderAll()});
  [["K/D ratio","kd"],["Win rate","win"],["Average damage","dmg"],["Top 10 rate","top"],["Accuracy and headshots","acc"],["Survival and support","surv"]].forEach(([n,k])=>add("Breakdown",n,()=>openMetric(k)));
  SECTIONS.forEach(([n,id])=>add("Go to",n,()=>{const e=$(id),s=e&&e.closest?e.closest("section"):null;(s||e).scrollIntoView({behavior:"smooth"})}));
  if(tok.length){const rl=r=>`${r.season} ${r.gamertag===MAIN?"Main":"Alt"} ${r.segment} - ${r.theme} (${r.highestTier})`;
@@ -519,17 +521,153 @@ $("form").onsubmit=async ev=>{ev.preventDefault();const id=+$("f_id").value,old=
  FIELDS.forEach(([k,,t])=>{if(t==="image")return;const s=$("f_"+k).value.trim();v[k]=t==="num"?Number(s):s});v.season=v.season.toUpperCase();
  const fi=$("f_image").files[0];if(fi)v.image=await readImg(fi);const e=finish(v);R[R.findIndex(r=>r.id===id)]=e;save();acc=e.gamertag;seg=e.segment;foc=id;$("formDlg").close();fillCompare();renderAll();toast("Updated "+e.season,"success")};
 
+/* ---------- saving, backup and restore ---------- */
+const BK="pubgm_lastbackup_v5",DK="pubgm_dirty_v5",DAY=864e5;
+let fileHandle=null,needPerm=false,lastBackup=+store.get(BK)||0,dirty=+store.get(DK)||0,persisted=false,storageOK=true,lastFileSave=0,barHidden=false,saveT=null;
+const canFilePick=()=>typeof showSaveFilePicker!=="undefined";
+const idb={open(){return new Promise((res,rej)=>{const q=indexedDB.open("pubgm",1);q.onupgradeneeded=()=>q.result.createObjectStore("kv");q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})},
+ async get(k){const db=await this.open();return new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})},
+ async set(k,v){const db=await this.open();return new Promise((res,rej)=>{const tx=db.transaction("kv","readwrite");tx.objectStore("kv").put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}};
+const payload=()=>({app:"pubg-master-telemetry",version:5,savedAt:new Date().toISOString(),records:R,avatar:store.get(AK)||null});
+const ago=ts=>{if(!ts)return"never";const m=Math.round((Date.now()-ts)/6e4);return m<1?"just now":m<60?m+" min ago":m<1440?Math.round(m/60)+" h ago":Math.round(m/1440)+" days ago"};
+function save(){storageOK=store.set(SK,JSON.stringify(R));dirty++;store.set(DK,String(dirty));idb.set("records",payload()).catch(()=>{});clearTimeout(saveT);saveT=setTimeout(()=>{writeFile();syncSheets()},700);drawData()}
+function markBackedUp(){lastBackup=Date.now();dirty=0;store.set(BK,String(lastBackup));store.set(DK,"0")}
+async function writeFile(){if(!fileHandle)return;try{if(fileHandle.queryPermission&&await fileHandle.queryPermission({mode:"readwrite"})!=="granted"){needPerm=true;drawData();return}const w=await fileHandle.createWritable();await w.write(JSON.stringify(payload(),null,2));await w.close();needPerm=false;lastFileSave=Date.now();markBackedUp()}catch(e){needPerm=true}drawData()}
+function saveNow(){writeFile().then(()=>toast("Saved to file","success"))}
+async function linkFile(){if(!canFilePick()){toast("This browser cannot link a file. Use Download backup instead.");return}
+ try{fileHandle=await showSaveFilePicker({suggestedName:"pubg-telemetry-data.json",types:[{description:"JSON data",accept:{"application/json":[".json"]}}]});try{await idb.set("handle",fileHandle)}catch(e){}await writeFile();toast("Saving to "+fileHandle.name,"success")}catch(e){if(!e||e.name!=="AbortError")toast("Could not link that file","error")}drawData()}
+async function openFile(){if(typeof showOpenFilePicker==="undefined"){toast("This browser cannot open a linked file. Use Restore from backup.");return}
+ try{const [h]=await showOpenFilePicker({types:[{description:"JSON data",accept:{"application/json":[".json"]}}]}),f=await h.getFile(),d=JSON.parse(await f.text());if(!applyBackup(d))throw new Error("bad");dirty=0;store.set(DK,"0");if(h.requestPermission&&await h.requestPermission({mode:"readwrite"})==="granted"){fileHandle=h;needPerm=false;try{await idb.set("handle",h)}catch(e){}}toast("Loaded "+h.name,"success")}catch(e){if(!e||e.name!=="AbortError")toast("That file is not a valid save file","error")}drawData()}
+async function reconnect(){if(!fileHandle)return;try{if(await fileHandle.requestPermission({mode:"readwrite"})==="granted"){needPerm=false;await writeFile()}}catch(e){}drawData()}
+async function unlinkFile(){fileHandle=null;needPerm=false;try{await idb.set("handle",null)}catch(e){}drawData()}
+function applyBackup(d){const rec=Array.isArray(d)?d:d&&d.records;if(!Array.isArray(rec)||!rec.length||!rec[0].season||rec[0].matches===undefined)return false;R=rec;if(d&&d.avatar)store.set(AK,d.avatar);foc=null;save();fillCompare();renderAll();return true}
+function downloadBackup(){const d=new Date().toISOString().slice(0,10);download(`pubg-telemetry-backup-${d}.json`,JSON.stringify(payload(),null,2),"application/json");markBackedUp();drawData();toast(`Backup downloaded (${R.length} records)`,"success")}
+function drawData(){const stale=lastBackup&&Date.now()-lastBackup>30*DAY,col=!storageOK?"bg-rose-500":(dirty>0||stale)?"bg-amber-400":"bg-emerald-400",canFile=canFilePick();
+ $("dataDot").className="inline-block w-2 h-2 rounded-full "+col;
+ const plural=n=>`${n} change${n>1?"s":""}`;
+ const rows=[[storageOK?"ok":"bad","Saved in this browser",storageOK?"Every change saves automatically on this device.":"Browser storage is blocked, so changes will be lost when you close the page. Download a backup."],
+  [persisted?"ok":"warn","Protected from cleanup",persisted?"The browser agreed to keep this data.":"The browser may clear it if the device runs low on space."],
+  [fileHandle&&!needPerm?"ok":fileHandle?"warn":"none","Save file on your computer",fileHandle?(needPerm?`${esc(fileHandle.name)} is linked but needs permission. Click Reconnect.`:`Auto-saving to ${esc(fileHandle.name)}${lastFileSave?", last "+ago(lastFileSave):""}.`):(canFile?"Not linked. Link a file and every change is also written to it.":"Not available in this browser (works in Chrome and Edge on a computer).")],
+  [dirty===0&&lastBackup?"ok":"warn","Backup",lastBackup?`Last backup ${ago(lastBackup)}.`+(dirty?` ${plural(dirty)} since then.`:""):`No backup yet.${dirty?" "+plural(dirty)+" so far.":""}`]];
+ $("dataRows").innerHTML=rows.map(([s,t,d])=>`<div class="flex gap-3 items-start py-2"><span class="mt-1.5 w-2 h-2 rounded-full shrink-0 ${s==="ok"?"bg-emerald-400":s==="bad"?"bg-rose-500":s==="warn"?"bg-amber-400":"bg-slate-600"}"></span><div><div class="text-sm font-semibold">${t}</div><div class="text-xs text-slate-400">${d}</div></div></div>`).join("");
+ $("fileBtns").innerHTML=canFile?(fileHandle?`${needPerm?'<button type="button" class="btn !text-amber-300" onclick="reconnect()">Reconnect</button>':'<button type="button" class="btn" onclick="saveNow()">Save now</button>'}<button type="button" class="btn" onclick="linkFile()">Change file</button><button type="button" class="btn" onclick="unlinkFile()">Unlink</button>`:'<button type="button" class="btn !text-emerald-300 !border-emerald-500/30" onclick="linkFile()">Create save file</button><button type="button" class="btn" onclick="openFile()">Open existing save file</button>'):'<span class="text-xs text-slate-500">Not supported here. Use Download backup below.</span>';
+ const show=!barHidden&&((dirty>=3&&!safeRemote())||(dirty>0&&stale));$("backupMsg").textContent=`${plural(Math.max(dirty,1))} exist only in this browser.`;$("backupBar").classList.toggle("hidden",!show);drawSheets()}
+async function initPersistence(){
+ try{if(navigator.storage&&navigator.storage.persisted)persisted=await navigator.storage.persisted();if(!persisted&&navigator.storage&&navigator.storage.persist)persisted=await navigator.storage.persist()}catch(e){}
+ try{const h=await idb.get("handle");if(h){fileHandle=h;needPerm=!(h.queryPermission&&await h.queryPermission({mode:"readwrite"})==="granted")}}catch(e){}
+ try{if(!store.get(SK)){const p=await idb.get("records");if(p&&Array.isArray(p.records)&&p.records.length&&applyBackup(p)){dirty=0;store.set(DK,"0");toast("Restored your data from the backup copy kept in this browser","success")}}}catch(e){}
+ drawData()}
+$("importIn").onchange=e=>{const f=e.target.files[0];e.target.value="";if(!f)return;const rd=new FileReader();rd.onload=ev=>{try{if(!applyBackup(JSON.parse(ev.target.result)))throw new Error("bad");dirty=0;store.set(DK,"0");drawData();toast(`Restored ${R.length} records`,"success")}catch(x){toast("That file is not a valid backup","error")}};rd.readAsText(f)};
 /* ---------- import / export / reset ---------- */
 function download(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
-function exportJson(){download("pubgm-master-telemetry-v4.json",JSON.stringify(R,null,2),"application/json");toast(`Exported ${R.length} records`,"success")}
+function exportJson(){downloadBackup()}
 function exportCsv(){const H=["Season","Image","Status","Combat Mode","Players","Segment","Gamertag","UID","Dates","Theme","Version","Highest Tier","Rating Tier","Rating","Matches Played","Wins","Top 10","Eliminations","K/D Ratio","Win Ratio","Top 10 Rate","Accuracy","Headshot Rate","Headshots","AVG Damage","Total Damage","Most Eliminations","Highest Damage in Match","Total Assist","AVG Assist","Longest Traveled (KM)","AVG Heals","AVG Survival (minutes)","AVG Traveled (KM)","Rescues","Longest Survival (minutes)"];
  const row=r=>{const d=D(r);return[r.season,r.image?"yes":"",r.status,r.combatMode,r.players,r.segment,r.gamertag,r.uid,r.dates,r.theme,r.version,r.highestTier,r.ratingTier,r.rating,r.matches,r.wins,r.top10,r.kills,d.kd,d.win/100,d.top/100,r.accuracy/100,d.hs/100,r.headshots,d.dmg,r.totalDamage,r.maxKills,r.maxDamage,r.assists,d.ast,r.longestTravel,r.avgHeals,r.avgSurvival,r.avgTravel,r.rescues,r.longestSurvival]};
  download("PUBG_Master_Stats_export.csv",[H.join(","),...R.map(r=>row(r).map(c=>`"${String(c??"").replace(/"/g,'""')}"`).join(","))].join("\n"),"text/csv");toast("CSV exported in spreadsheet column order","success")}
-$("importIn").onchange=e=>{const f=e.target.files[0];e.target.value="";if(!f)return;const rd=new FileReader();rd.onload=ev=>{try{const p=JSON.parse(ev.target.result);if(!Array.isArray(p)||!p[0]||!p[0].season)throw 0;R=p;save();foc=null;fillCompare();renderAll();toast(`Imported ${R.length} records`,"success")}catch(x){toast("Invalid JSON file","error")}};rd.readAsText(f)};
+
+/* ---------- spreadsheet sync: Google Sheet (Apps Script) and Excel file ---------- */
+const GSK="pubgm_gs_v5";
+const SH=["Season","Image","Status","Combat Mode","Players","Segment","Gamertag","UID","Dates","Theme","Version","Image","Highest Tier","Rating Tier","Rating","Matches Played","Wins","Top 10","Eliminations","K/D Ratio","Win Ratio","Top 10 Rate","Accuracy","Headshot Rate","Headshots","AVG Damage","Total Damage","Most Eliminations","Highest Damage in Match","Total Assist","AVG Assist","Longest Traveled (KM)","AVG Heals","AVG Survival (minutes)","AVG Traveled (KM)","Rescues","Longest Survival (minutes)","Verified"];
+const themeUrl=r=>r.image&&!/^data:/.test(r.image)?r.image:(THEME_IMG[String(r.theme||"").trim()]||"");
+const tierOut=r=>["Unranked","Active Season"].includes(r.highestTier)?"N/A":r.highestTier;
+const sheetRow=r=>{const d=D(r);return[r.season,r.image?"yes":"",r.status,r.combatMode||"TPP",r.players||"Squad",r.segment,r.gamertag,r.uid,r.dates,r.theme,r.version,themeUrl(r),tierOut(r),r.ratingTier,r.rating,r.matches,r.wins,r.top10,r.kills,+d.kd.toFixed(4),+(d.win/100).toFixed(4),+(d.top/100).toFixed(4),+(r.accuracy/100).toFixed(4),+(d.hs/100).toFixed(3),r.headshots,+d.dmg.toFixed(1),r.totalDamage,r.maxKills,r.maxDamage,r.assists,+d.ast.toFixed(1),r.longestTravel,r.avgHeals,r.avgSurvival,r.avgTravel,r.rescues,r.longestSurvival,(r.ok||[]).join(",")]};
+const COLMAP=[["season","Season","s"],["status","Status","s"],["combatMode","Combat Mode","s"],["players","Players","s"],["segment","Segment","s"],["gamertag","Gamertag","s"],["uid","UID","u"],["dates","Dates","s"],["theme","Theme","s"],["version","Version","v"],["highestTier","Highest Tier","s"],["ratingTier","Rating Tier","s"],["rating","Rating","n1"],["matches","Matches Played","i"],["wins","Wins","i"],["top10","Top 10","i"],["kills","Eliminations","i"],["accuracy","Accuracy","p"],["headshots","Headshots","i"],["avgDamage","AVG Damage","n1"],["totalDamage","Total Damage","n1"],["maxKills","Most Eliminations","i"],["maxDamage","Highest Damage in Match","i"],["assists","Total Assist","i"],["longestTravel","Longest Traveled (KM)","n2"],["avgHeals","AVG Heals","n1"],["avgSurvival","AVG Survival (minutes)","n1"],["avgTravel","AVG Traveled (KM)","n2"],["rescues","Rescues","i"],["longestSurvival","Longest Survival (minutes)","n1"]];
+function rowsToRecords(aoa){if(!Array.isArray(aoa)||aoa.length<2)return[];
+ const hd=aoa[0].map(x=>String(x).trim().toLowerCase()),ix={};hd.forEach((h,i)=>{if(!(h in ix))ix[h]=i});
+ if(!("season" in ix)||!("matches played" in ix))return[];
+ const old=new Map(R.map(r=>[r.season+"|"+r.gamertag+"|"+r.segment,r])),out=[];
+ for(let k=1;k<aoa.length;k++){const row=aoa[k],g=n=>{const i=ix[n.toLowerCase()];return i===undefined||row[i]==null?"":row[i]};
+  const season=String(g("Season")).trim();if(!/^S\d+/i.test(season))continue;
+  const e={id:out.length+1};
+  COLMAP.forEach(([f,h,t])=>{const v=g(h);let x;
+   if(t==="s")x=String(v).trim();
+   else if(t==="u"){const nn=Number(v);x=v!==""&&!isNaN(nn)?String(Math.round(nn)):String(v).trim()}
+   else if(t==="v"){const s=String(v).trim();x=s!==""&&!isNaN(Number(s))?Number(s).toFixed(1):s}
+   else{let nn=parseFloat(String(v).replace(/,/g,""));if(isNaN(nn))nn=0;if(t==="p")nn=nn<=1?nn*100:nn;const m=t==="n2"?100:10;x=t==="i"?Math.round(nn):Math.round(nn*m)/m}
+   e[f]=x});
+  if(!e.gamertag)continue;
+  e.season=season.toUpperCase();e.matches=Math.max(1,e.matches);
+  if(!e.status)e.status="Completed";if(!e.combatMode)e.combatMode="TPP";if(!e.players)e.players="Squad";
+  if(!e.uid)e.uid=e.gamertag===ALT?"51887721288":"51887738551";
+  if(/^(n\/a|none|-)$/i.test(e.highestTier))e.highestTier="";if(!e.highestTier)e.highestTier=e.segment==="Unranked"?"Unranked":e.status==="Active"?"Active Season":"";
+  if(!e.avgDamage)e.avgDamage=+(e.totalDamage/e.matches).toFixed(1);
+  const vf=String(g("Verified")).split(",").map(s=>s.trim()).filter(Boolean),o=old.get(e.season+"|"+e.gamertag+"|"+e.segment);
+  const ok=[...new Set([...(vf),...((o&&o.ok)||[])])];if(ok.length)e.ok=ok;
+  if(o&&o.image)e.image=o.image;
+  out.push(e)}
+ return out}
+function adoptRecords(rec){R=rec;foc=null;save();fillCompare();renderAll()}
+
+/* Google Sheet through a small Apps Script web app */
+const GAS_LINES=["var TOKEN = '__TOKEN__';", "var TAB = ''; // empty = first tab of this spreadsheet, or type a tab name", "var KEYS = ['Season', 'Gamertag', 'Segment'];", "", "function sh_() {", "  var ss = SpreadsheetApp.getActiveSpreadsheet();", "  if (!TAB) return ss.getSheets()[0];", "  return ss.getSheetByName(TAB) || ss.insertSheet(TAB);", "}", "function out_(o) {", "  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);", "}", "function doGet(e) {", "  if (e.parameter.token !== TOKEN) return out_({ok: false, error: 'bad token'});", "  var v = sh_().getDataRange().getValues().filter(function (r, i) {", "    return i === 0 || String(r[0]).trim() !== '';", "  });", "  return out_({ok: true, values: v});", "}", "function same_(a, b) {", "  var x = String(a).trim(), y = String(b).trim();", "  if (x === y) return true;", "  var nx = Number(x), ny = Number(y);", "  return x !== '' && y !== '' && !isNaN(nx) && !isNaN(ny) && Math.abs(nx - ny) < 0.0006;", "}", "function put_(sh, row, vals, mask) {", "  var c = 0;", "  while (c < mask.length) {", "    if (!mask[c]) { c++; continue; }", "    var s = c;", "    while (c < mask.length && mask[c]) c++;", "    sh.getRange(row, s + 1, 1, c - s).setValues([vals.slice(s, c)]);", "  }", "}", "function doPost(e) {", "  var b = JSON.parse(e.postData.contents);", "  if (b.token !== TOKEN) return out_({ok: false, error: 'bad token'});", "  var lock = LockService.getScriptLock();", "  lock.waitLock(20000);", "  var added = 0, updated = 0;", "  try {", "    var sh = sh_();", "    var head = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0].map(String);", "    var seen = {};", "    var pos = b.header.map(function (h) {", "      var k = seen[h] || 0, c = -1, cnt = 0;", "      seen[h] = k + 1;", "      for (var i = 0; i < head.length; i++) {", "        if (head[i] === h) { if (cnt === k) { c = i; break; } cnt++; }", "      }", "      if (c < 0) { head.push(h); c = head.length - 1; sh.getRange(1, c + 1).setValue(h); }", "      return c;", "    });", "    var n = head.length;", "    var lastRow = Math.max(sh.getLastRow(), 2);", "    var cur = sh.getRange(2, 1, lastRow - 1, n).getValues();", "    var forms = sh.getRange(2, 1, 1, n).getFormulas()[0];", "    var isF = head.map(function (h, i) { return String(forms[i] || '').charAt(0) === '='; });", "    var ki = KEYS.map(function (k) { return head.indexOf(k); });", "    var map = {}, firstEmpty = -1;", "    cur.forEach(function (r, i) {", "      if (String(r[ki[0]]).trim() === '') { if (firstEmpty < 0) firstEmpty = i; return; }", "      map[ki.map(function (j) { return String(r[j]).trim(); }).join('|')] = i;", "    });", "    var kb = KEYS.map(function (k) { return b.header.indexOf(k); });", "    var next = firstEmpty >= 0 ? firstEmpty : cur.length;", "    b.rows.forEach(function (r) {", "      var key = kb.map(function (j) { return String(r[j]).trim(); }).join('|');", "      var idx = map[key], isNew = idx === undefined, vals = [], mask = [];", "      for (var i = 0; i < n; i++) { vals.push(''); mask.push(false); }", "      b.header.forEach(function (h, j) {", "        var c = pos[j];", "        if (isF[c]) return;", "        if (isNew || !same_(cur[idx][c], r[j])) { vals[c] = r[j]; mask[c] = true; }", "      });", "      if (!isNew && mask.indexOf(true) < 0) return;", "      var row;", "      if (isNew) { row = next + 2; next++; added++; } else { row = idx + 2; updated++; }", "      if (row > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), row - sh.getMaxRows());", "      put_(sh, row, vals, mask);", "      if (isNew) {", "        isF.forEach(function (f, c) {", "          if (f && !sh.getRange(row, c + 1).getFormula()) sh.getRange(2, c + 1).copyTo(sh.getRange(row, c + 1));", "        });", "      }", "    });", "  } finally {", "    lock.releaseLock();", "  }", "  return out_({ok: true, count: b.rows.length, added: added, updated: updated});", "}"];
+const gsScript=tok=>GAS_LINES.join("\n").replace("__TOKEN__",tok);
+let gs=(()=>{try{return JSON.parse(store.get(GSK)||"{}")||{}}catch(e){return{}}})(),gsState=gs.url?"idle":"none",gsLast=0,gsErr="",gsRows=0;
+const randTok=()=>{try{const a=new Uint8Array(12);crypto.getRandomValues(a);return[...a].map(b=>b.toString(16).padStart(2,"0")).join("")}catch(e){return String(Math.random()).slice(2,18)}};
+async function gsCall(opts,qs){const u=gs.url+(qs?(gs.url.includes("?")?"&":"?")+qs:"");const r=await fetch(u,opts);let j;try{j=await r.json()}catch(e){throw new Error("unexpected reply. Deploy the script as a web app that anyone can access")}if(!j.ok)throw new Error(j.error||"rejected");return j}
+async function gsPush(){if(!gs.url||gsState==="choose")return;gsState="syncing";drawData();
+ try{await gsCall({method:"POST",body:JSON.stringify({token:gs.token,header:SH,rows:R.map(sheetRow)})});gsState="ok";gsLast=Date.now();gsErr="";markBackedUp()}catch(e){gsState="error";gsErr=String(e.message||e)}drawData()}
+const gsValues=async()=>(await gsCall({},"token="+encodeURIComponent(gs.token))).values;
+async function gsPull(){try{const rec=rowsToRecords(await gsValues());if(!rec.length){toast("The sheet has no season rows to load","error");return}
+ if(!confirm(`Load ${rec.length} records from the sheet and replace the ${R.length} in the dashboard?`))return;adoptRecords(rec);toast(`Loaded ${rec.length} records from the sheet`,"success")}catch(e){toast("Could not read the sheet: "+e.message,"error")}}
+function openGs(){if(!gs.token)gs.token=randTok();$("gsUrl").value=gs.url||"";$("gsTok").value=gs.token;gsRefresh();$("gsDisc").classList.toggle("hidden",!gs.url);$("gsDlg").showModal()}
+function gsRefresh(){$("gsCode").value=gsScript($("gsTok").value.trim()||"TOKEN")}
+function gsCopy(){const t=$("gsCode");t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(()=>toast("Script copied","success"),()=>toast(ok?"Script copied":"Select the script and copy it by hand"));else toast(ok?"Script copied":"Select the script and copy it by hand")}
+async function gsConnect(){const url=$("gsUrl").value.trim(),tok=$("gsTok").value.trim();
+ if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){toast("Paste the Web app URL that ends in /exec","error");return}if(!tok){toast("The token cannot be empty","error");return}
+ const prev=gs;gs={url,token:tok};
+ try{const v=await gsValues(),n=v.slice(1).filter(r=>String(r[0]).trim()!=="").length;store.set(GSK,JSON.stringify(gs));$("gsDlg").close();
+  if(n===0){gsState="idle";toast("Connected. Saving your data to the sheet","success");await gsPush()}else{gsRows=n;gsState="choose";toast("Connected. Choose which data to keep","success");drawData()}}
+ catch(e){gs=prev;toast("Could not connect: "+e.message,"error")}}
+async function gsChoose(which){if(which==="sheet"){try{const rec=rowsToRecords(await gsValues());if(!rec.length){toast("No season rows found in the sheet","error");return}adoptRecords(rec);toast(`Loaded ${rec.length} records from the sheet`,"success")}catch(e){toast("Could not read the sheet: "+e.message,"error");return}}
+ gsState="idle";await gsPush()}
+function gsDisconnect(){gs={};store.del(GSK);gsState="none";gsErr="";$("gsDlg").close();drawData();toast("Google Sheet disconnected")}
+
+/* Excel file (.xlsx) */
+let xh=null,xPerm=false,xLast=0,xErr="";
+const XLSX_MIME="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+function loadXlsx(){return window.XLSX?Promise.resolve():new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";s.onload=res;s.onerror=()=>rej(new Error("could not load the Excel library (needs internet)"));document.head.appendChild(s)})}
+function buildSheet(){const ws=XLSX.utils.aoa_to_sheet([SH,...R.map(sheetRow)]);ws["!cols"]=SH.map(h=>({wch:Math.max(10,Math.min(34,h.length+2))}));ws["!freeze"]={xSplit:0,ySplit:1};
+ ["Win Ratio","Top 10 Rate","Accuracy","Headshot Rate"].forEach(h=>{const c=SH.indexOf(h);for(let r=1;r<=R.length;r++){const a=ws[XLSX.utils.encode_cell({r,c})];if(a)a.z="0.0%"}});return ws}
+async function xlsxBytes(prevBuf){await loadXlsx();const ws=buildSheet();let wb=null;
+ if(prevBuf&&prevBuf.byteLength){try{wb=XLSX.read(prevBuf,{type:"array"})}catch(e){wb=null}}
+ if(wb&&wb.SheetNames.length)wb.Sheets[wb.SheetNames[0]]=ws;else{wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Master")}
+ return XLSX.write(wb,{type:"array",bookType:"xlsx"})}
+async function xlsxWrite(){if(!xh)return;
+ try{if(xh.queryPermission&&await xh.queryPermission({mode:"readwrite"})!=="granted"){xPerm=true;drawData();return}
+  let prev=null;try{const f=await xh.getFile();if(f.size>0)prev=await f.arrayBuffer()}catch(e){}
+  const bytes=await xlsxBytes(prev),w=await xh.createWritable();await w.write(bytes);await w.close();xPerm=false;xErr="";xLast=Date.now();markBackedUp()}
+ catch(e){xErr=String(e.message||e);if(/permission|denied|NotAllowed/i.test(xErr))xPerm=true}drawData()}
+async function linkXlsx(){if(!canFilePick()){toast("Linking a file needs Chrome or Edge on a computer. Use Download .xlsx instead.");return}
+ try{const h=await showSaveFilePicker({suggestedName:"PUBG Master Stats.xlsx",types:[{description:"Excel workbook",accept:{[XLSX_MIME]:[".xlsx"]}}]});xh=h;try{await idb.set("xhandle",h)}catch(e){}await xlsxWrite();if(!xErr)toast("Saving to "+h.name,"success")}
+ catch(e){if(!e||e.name!=="AbortError")toast("Could not link that file","error")}drawData()}
+async function xlsxReconnect(){if(!xh)return;try{if(await xh.requestPermission({mode:"readwrite"})==="granted"){xPerm=false;await xlsxWrite()}}catch(e){}drawData()}
+async function xlsxUnlink(){xh=null;xPerm=false;try{await idb.set("xhandle",null)}catch(e){}drawData()}
+async function downloadXlsx(){try{const bytes=await xlsxBytes(null),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([bytes],{type:XLSX_MIME}));a.download="PUBG Master Stats.xlsx";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),800);markBackedUp();drawData();toast("Excel file downloaded","success")}catch(e){toast("Could not build the Excel file: "+e.message,"error")}}
+async function importXlsx(inp){const f=inp.files[0];inp.value="";if(!f)return;
+ try{await loadXlsx();const wb=XLSX.read(await f.arrayBuffer(),{type:"array"}),ws=wb.Sheets[wb.SheetNames[0]],rec=rowsToRecords(XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""}));
+  if(!rec.length){toast("No season rows found. The first sheet needs Season and Matches Played columns.","error");return}
+  if(!confirm(`Load ${rec.length} records from ${f.name} and replace the ${R.length} in the dashboard?`))return;adoptRecords(rec);toast(`Loaded ${rec.length} records from ${f.name}`,"success")}
+ catch(e){toast("Could not read that file: "+e.message,"error")}}
+
+const safeRemote=()=>(fileHandle&&!needPerm)||(xh&&!xPerm)||(gs.url&&gsState==="ok");
+function syncSheets(){gsPush();xlsxWrite()}
+function sBlock(title,state,msg,btns){const c=state==="ok"?"bg-emerald-400":state==="bad"?"bg-rose-500":state==="warn"?"bg-amber-400":"bg-slate-600";return `<div class="rounded-xl border border-white/10 bg-obsidian/50 p-3"><div class="flex gap-2 items-start"><span class="mt-1.5 w-2 h-2 rounded-full shrink-0 ${c}"></span><div class="min-w-0"><div class="text-sm font-semibold">${title}</div><div class="text-xs text-slate-400">${msg}</div></div></div><div class="flex flex-wrap gap-2 mt-2">${btns}</div></div>`}
+function drawSheets(){const el=$("sheetSec");if(!el)return;const B=(l,fn,c)=>`<button type="button" class="btn ${c||""}" onclick="${fn}">${l}</button>`,GOOD="!text-emerald-300 !border-emerald-500/30";
+ let g;if(!gs.url)g=sBlock("Google Sheet","none","Not connected. Every change would be saved to your sheet automatically, from any device.",B("Set up Google Sheet","openGs()",GOOD));
+ else if(gsState==="choose")g=sBlock("Google Sheet","warn",`Connected. The sheet already has ${gsRows} season rows. Choose which data to start from. Saving to the sheet is paused until you do.`,B("Use the sheet's data","gsChoose('sheet')",GOOD)+B("Keep dashboard data","gsChoose('dash')"));
+ else{const st=gsState==="ok"?["ok",`Saved to the sheet ${ago(gsLast)}. Every change is sent automatically.`]:gsState==="syncing"?["warn","Saving to the sheet..."]:gsState==="error"?["bad",`Could not reach the sheet (${esc(gsErr)}). Your changes are kept here and will be retried.`]:["warn","Connected. Waiting for the next save."];g=sBlock("Google Sheet",st[0],st[1],B("Save now","gsPush()")+B("Load from sheet","gsPull()")+B("Settings","openGs()"))}
+ const can=canFilePick();let x;
+ if(xh)x=sBlock("Excel file","" + (xPerm?"warn":xErr?"bad":"ok"),xPerm?`${esc(xh.name)} is linked but needs permission. Click Reconnect.`:xErr?`Could not write ${esc(xh.name)} (${esc(xErr)}).`:`Auto-saving to ${esc(xh.name)}${xLast?", last "+ago(xLast):""}. Only the first sheet is replaced.`,(xPerm?B("Reconnect","xlsxReconnect()","!text-amber-300"):B("Save now","xlsxWrite()"))+B("Change file","linkXlsx()")+B("Unlink","xlsxUnlink()"));
+ else x=sBlock("Excel file","none",can?"Not linked. Link an .xlsx file (new or your existing one) and every change is written into it.":"Linking a file needs Chrome or Edge on a computer. You can still download and load .xlsx files.",can?B("Link Excel file","linkXlsx()",GOOD):"");
+ el.innerHTML=g+x+`<div class="flex flex-wrap gap-2">${B("Download .xlsx","downloadXlsx()")}<label class="btn cursor-pointer">Load from .xlsx<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importXlsx(this)"></label></div>`}
+async function initSheets(){try{const h=await idb.get("xhandle");if(h){xh=h;xPerm=!(h.queryPermission&&await h.queryPermission({mode:"readwrite"})==="granted")}}catch(e){}
+ if(gs.url&&dirty>0)gsPush();drawData()}
+window.addEventListener("online",()=>{if(gsState==="error")gsPush()});
+
 function doReset(){R=clone(DATA);save();acc=MAIN;seg="Ranked";rate="ALL";foc=null;$("resetDlg").close();fillCompare();renderAll();toast("Restored "+R.length+" source rows","success")}
 
 function renderAll(){AUD=audit();drawPills();renderHeader();renderBests();renderKpi();renderCharts();renderInsights();renderCompare();renderAudit();renderTable()}
-fillCompare();renderAll();
+fillCompare();renderAll();initPersistence().then(initSheets);
 </script>
 </body>
 </html>
