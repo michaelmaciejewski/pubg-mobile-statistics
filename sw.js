@@ -1,6 +1,6 @@
 // Bump VERSION whenever you upload a new index.html or new icons.
 // The app then downloads the new files and drops the old copies.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'pubgm-' + VERSION;
 const CORE = [
   './',
